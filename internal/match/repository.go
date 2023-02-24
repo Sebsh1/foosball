@@ -20,6 +20,7 @@ var (
 
 type Repository interface {
 	CreateMatch(ctx context.Context, match *Match) error
+	GetMatchByID(ctx context.Context, id uint) (*Match, error)
 	DeleteMatch(ctx context.Context, match *Match) error
 	GetMatchesWithPlayer(ctx context.Context, player *player.Player) ([]*Match, error)
 }
@@ -47,6 +48,15 @@ func (r *RepositoryImpl) CreateMatch(ctx context.Context, match *Match) error {
 	return nil
 }
 
+func (r *RepositoryImpl) GetMatchByID(ctx context.Context, id uint) (*Match, error) {
+	var match *Match
+	if err := r.db.WithContext(ctx).First(match, id).Error; err != nil {
+		return nil, err
+	}
+
+	return match, nil
+}
+
 func (r *RepositoryImpl) DeleteMatch(ctx context.Context, match *Match) error {
 	result := r.db.WithContext(ctx).
 		Where(Match{ID: match.ID}).
@@ -64,6 +74,30 @@ func (r *RepositoryImpl) DeleteMatch(ctx context.Context, match *Match) error {
 }
 
 func (r *RepositoryImpl) GetMatchesWithPlayer(ctx context.Context, player *player.Player) ([]*Match, error) {
-	// TODO
-	return []*Match{nil}, nil
+	var matchesAsTeamA []*Match
+	var matchesAsTeamB []*Match
+	tx := r.db.Begin()
+
+	err := tx.WithContext(ctx).
+		Model(&Match{}).
+		Where("teamA = ?", player).
+		Association("Players").
+		Find(&matchesAsTeamA)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	err = tx.WithContext(ctx).
+		Model(&Match{}).
+		Where("teamB = ?", player).
+		Association("Players").
+		Append(&matchesAsTeamB)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	tx.Commit()
+	return append(matchesAsTeamA, matchesAsTeamB...), nil
 }

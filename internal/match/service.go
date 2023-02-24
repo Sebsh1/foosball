@@ -55,6 +55,10 @@ func (s *ServiceImpl) DeleteMatch(ctx context.Context, match *Match) error {
 	return nil
 }
 func (s *ServiceImpl) GetMatchesWithPlayer(ctx context.Context, player *player.Player) ([]*Match, error) {
-	//TODO
-	return []*Match{}, nil
+	matches, err := s.repo.GetMatchesWithPlayer(ctx, player)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get matches with player")
+	}
+
+	return matches, nil
 }

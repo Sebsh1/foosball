@@ -1,6 +1,8 @@
 package player
 
-import "time"
+import (
+	"time"
+)
 
 type Player struct {
 	ID uint
