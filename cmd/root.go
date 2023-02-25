@@ -23,14 +23,14 @@ const shutdownPeriod = 15 * time.Second
 
 type Config struct {
 	Log    LogConfig     `mapstructure:"log" validate:"dive"`
-	rest   rest.Config   `mapstructure:"rest" validate:"dive"`
+	Rest   rest.Config   `mapstructure:"rest" validate:"dive"`
 	DB     mysql.Config  `mapstructure:"db" validate:"dive"`
 	Rating rating.Config `mapstructure:"rating" validate:"dive"`
 }
 
 type LogConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level  string `mapstructure:"level" default:"info"`
+	Format string `mapstructure:"format" default:"text"`
 }
 
 var rootCmd = &cobra.Command{

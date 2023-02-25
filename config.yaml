@@ -1,0 +1,14 @@
+log:
+  level: debug
+  format: text
+
+rest:
+  port: 8001
+  gzip_compression_level: 5
+
+db:
+  dsn: foosball:secret@tcp(localhost:3306)/foosball?charset=utf8&parseTime=True
+  debug: false
+
+rating:
+  method: elo

@@ -28,7 +28,7 @@ func (m Method) String() string {
 }
 
 type Config struct {
-	Method string `validate:"required" default:"elo"` // One of elo, weighted or rms
+	Method string `mapstructure:"method" validate:"required" default:"elo"` // One of elo, weighted or rms
 }
 
 type Service interface {

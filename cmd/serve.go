@@ -56,7 +56,7 @@ func serve(cmd *cobra.Command, args []string) {
 	ratingService := rating.NewService(config.Rating, playerService)
 
 	httpServer, err := rest.NewServer(
-		config.rest,
+		config.Rest,
 		log,
 		playerService,
 		matchService,
@@ -69,7 +69,7 @@ func serve(cmd *cobra.Command, args []string) {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	log.WithField("port", config.rest.Port).Info("REST server starting")
+	log.WithField("port", config.Rest.Port).Info("REST server starting")
 	go func() {
 		if err := httpServer.Start(); err != nil {
 			log.WithError(err).Error("failed to start http server")
