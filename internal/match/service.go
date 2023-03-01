@@ -2,11 +2,11 @@ package match
 
 import (
 	"context"
-	"encoding/json"
 	"foosball/internal/models"
 	"foosball/internal/player"
 
 	"github.com/pkg/errors"
+	"gorm.io/datatypes"
 )
 
 type Config struct {
@@ -14,7 +14,7 @@ type Config struct {
 }
 
 type Service interface {
-	CreateMatch(ctx context.Context, teamA, teamB []models.Player, goalsA, goalsB int) error
+	CreateMatch(ctx context.Context, teamA, teamB []*models.Player, goalsA, goalsB int) error
 	GetMatch(ctx context.Context, id uint) (*models.Match, error)
 	DeleteMatch(ctx context.Context, match *models.Match) error
 	GetMatchesWithPlayer(ctx context.Context, player *models.Player) ([]*models.Match, error)
@@ -32,24 +32,25 @@ func NewService(repo Repository, playerService player.Service) Service {
 	}
 }
 
-func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []models.Player, goalsA, goalsB int) error {
-	idsA, err := s.playerIDsAsJSON(teamA)
-	if err != nil {
-		return err
+func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []*models.Player, goalsA, goalsB int) error {
+	teamAIDs := make([]uint, len(teamA))
+	for i, p := range teamA {
+		teamAIDs[i] = p.ID
 	}
-	idsB, err := s.playerIDsAsJSON(teamB)
-	if err != nil {
-		return err
+
+	teamBIDs := make([]uint, len(teamB))
+	for i, p := range teamB {
+		teamAIDs[i] = p.ID
 	}
 
 	match := &models.Match{
-		TeamA:  idsA,
-		TeamB:  idsB,
+		TeamA:  datatypes.JSONType[[]uint]{Data: teamAIDs},
+		TeamB:  datatypes.JSONType[[]uint]{Data: teamBIDs},
 		GoalsA: goalsA,
 		GoalsB: goalsB,
 	}
 
-	err = s.repo.CreateMatch(ctx, match)
+	err := s.repo.CreateMatch(ctx, match)
 	if err != nil {
 		return errors.Wrap(err, "failed to create match")
 	}
@@ -83,17 +84,4 @@ func (s *ServiceImpl) GetMatchesWithPlayer(ctx context.Context, player *models.P
 	}
 
 	return matches, nil
-}
-
-func (s *ServiceImpl) playerIDsAsJSON(players []models.Player) ([]byte, error) {
-	ids := make([]uint, len(players))
-	for i, p := range players {
-		ids[i] = p.ID
-	}
-	idsJSON, err := json.Marshal(ids)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal player ids")
-	}
-
-	return idsJSON, nil
 }

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"foosball/internal/rest/helpers"
 	"net/http"
 
@@ -34,23 +33,9 @@ func (h *Handlers) GetMatch(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	var teamA []uint
-	err = json.Unmarshal(match.TeamA, &teamA)
-	if err != nil {
-		h.logger.WithError(err).Error("failed to unmarshal teamA ids")
-		return echo.ErrInternalServerError
-	}
-
-	var teamB []uint
-	err = json.Unmarshal(match.TeamB, &teamB)
-	if err != nil {
-		h.logger.WithError(err).Error("failed to unmarshal teamB ids")
-		return echo.ErrInternalServerError
-	}
-
 	resp := getMatchResponse{
-		TeamA:  teamA,
-		TeamB:  teamB,
+		TeamA:  match.TeamA.Data,
+		TeamB:  match.TeamB.Data,
 		GoalsA: match.GoalsA,
 		GoalsB: match.GoalsB,
 	}

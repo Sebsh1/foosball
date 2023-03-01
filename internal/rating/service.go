@@ -63,7 +63,7 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, teamA []*models.Player,
 
 	players := append(teamA, teamB...)
 	ratings := append(newRatingsTeamA, newRatingsTeamB...)
-	err := s.playerService.UpdatePlayers(ctx, players, ratings)
+	err := s.playerService.UpdatePlayerRatings(ctx, players, ratings)
 	if err != nil {
 		return errors.Wrap(err, "failed to update ratings")
 	}
