@@ -5,7 +5,6 @@ import (
 	"foosball/internal/models"
 
 	"github.com/go-sql-driver/mysql"
-
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -21,11 +20,12 @@ var (
 
 type Repository interface {
 	GetPlayer(ctx context.Context, id uint) (*models.Player, error)
-	GetPlayers(ctx context.Context, ids []uint) (*[]models.Player, error)
+	GetPlayers(ctx context.Context, ids []uint) ([]*models.Player, error)
 	CreatePlayer(ctx context.Context, player *models.Player) error
 	DeletePlayer(ctx context.Context, player *models.Player) error
 	UpdatePlayers(ctx context.Context, playesr []*models.Player) error
-	GetTopPlayersByRating(ctx context.Context, topX int) ([]*models.Player, error)
+	GetTopPlayersByRating(ctx context.Context, top int) ([]*models.Player, error)
+	GetTopPlayersByMatches(ctx context.Context, top int) ([]*models.Player, error)
 }
 
 type RepositoryImpl struct {
@@ -55,8 +55,8 @@ func (r *RepositoryImpl) GetPlayer(ctx context.Context, id uint) (*models.Player
 	return &player, nil
 }
 
-func (r *RepositoryImpl) GetPlayers(ctx context.Context, ids []uint) (*[]models.Player, error) {
-	var players []models.Player
+func (r *RepositoryImpl) GetPlayers(ctx context.Context, ids []uint) ([]*models.Player, error) {
+	var players []*models.Player
 
 	result := r.db.WithContext(ctx).
 		Find(&players, ids)
@@ -68,7 +68,7 @@ func (r *RepositoryImpl) GetPlayers(ctx context.Context, ids []uint) (*[]models.
 		return nil, result.Error
 	}
 
-	return &players, nil
+	return players, nil
 }
 
 func (r *RepositoryImpl) CreatePlayer(ctx context.Context, player *models.Player) error {
@@ -128,13 +128,33 @@ func (r *RepositoryImpl) UpdatePlayers(ctx context.Context, players []*models.Pl
 	return nil
 }
 
-func (r *RepositoryImpl) GetTopPlayersByRating(ctx context.Context, topX int) ([]*models.Player, error) {
+func (r *RepositoryImpl) GetTopPlayersByRating(ctx context.Context, top int) ([]*models.Player, error) {
+	// TODO currently doesnt work
 	var players []*models.Player
 
 	result := r.db.WithContext(ctx).
 		Select(&players).
 		Order("rating DESC").
-		Limit(topX)
+		Limit(top)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+
+		return nil, result.Error
+	}
+
+	return players, nil
+}
+
+func (r *RepositoryImpl) GetTopPlayersByMatches(ctx context.Context, top int) ([]*models.Player, error) {
+	// TODO currently doesnt work
+	var players []*models.Player
+
+	result := r.db.WithContext(ctx).
+		Select(&players).
+		Order("matches DESC").
+		Limit(top)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrNotFound

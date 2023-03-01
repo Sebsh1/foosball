@@ -77,7 +77,7 @@ func (h *Handlers) PostMatch(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	err = h.matchService.CreateMatch(ctx, *teamA, *teamB, req.GoalsA, req.GoalsB)
+	err = h.matchService.CreateMatch(ctx, teamA, teamB, req.GoalsA, req.GoalsB)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to create match")
 		return echo.ErrInternalServerError

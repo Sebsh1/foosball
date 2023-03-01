@@ -39,6 +39,6 @@ func Register(
 	e.GET("/match/:id", h.GetMatch)
 	e.POST("/match", h.PostMatch)
 
-	e.GET("/leaderboard/rating/:topX", h.GetLeaderboardRating)
-	e.GET("/leaderboard/matches/:topX", h.GetLeaderboardMatchesPlayed)
+	e.GET("/leaderboard/rating", h.GetLeaderboardRating)
+	e.GET("/leaderboard/matches", h.GetLeaderboardMatchesPlayed)
 }
