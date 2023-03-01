@@ -9,5 +9,6 @@ All you have to do is deploy it, play foosball and log the results.
 **Notice:** Your developers might instead start thinking about creating a frontend for this service to throw onto a screen near the table.
 
 ### Setup
+run <code>go run main.go serve</code> to start the service with the config defined in <code>config.yaml</code>.
 
 ### API Docs
