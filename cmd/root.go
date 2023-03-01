@@ -103,7 +103,9 @@ func GetLogger(config LogConfig) *logrus.Logger {
 	case "json":
 		logger.SetFormatter(&logrus.JSONFormatter{})
 	case "text":
-		logger.SetFormatter(&logrus.TextFormatter{})
+		logger.SetFormatter(&logrus.TextFormatter{
+			DisableTimestamp: true,
+		})
 	}
 
 	return logger

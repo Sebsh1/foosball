@@ -2,7 +2,7 @@ package match
 
 import (
 	"context"
-	"foosball/internal/player"
+	"foosball/internal/models"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
@@ -19,10 +19,10 @@ var (
 )
 
 type Repository interface {
-	CreateMatch(ctx context.Context, match *Match) error
-	GetMatchByID(ctx context.Context, id uint) (*Match, error)
-	DeleteMatch(ctx context.Context, match *Match) error
-	GetMatchesWithPlayer(ctx context.Context, player *player.Player) ([]*Match, error)
+	CreateMatch(ctx context.Context, match *models.Match) error
+	GetMatch(ctx context.Context, id uint) (*models.Match, error)
+	DeleteMatch(ctx context.Context, match *models.Match) error
+	GetMatchesWithPlayer(ctx context.Context, player *models.Player) ([]*models.Match, error)
 }
 
 type RepositoryImpl struct {
@@ -35,7 +35,7 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-func (r *RepositoryImpl) CreateMatch(ctx context.Context, match *Match) error {
+func (r *RepositoryImpl) CreateMatch(ctx context.Context, match *models.Match) error {
 	if err := r.db.WithContext(ctx).Create(&match).Error; err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
@@ -48,19 +48,19 @@ func (r *RepositoryImpl) CreateMatch(ctx context.Context, match *Match) error {
 	return nil
 }
 
-func (r *RepositoryImpl) GetMatchByID(ctx context.Context, id uint) (*Match, error) {
-	var match *Match
-	if err := r.db.WithContext(ctx).First(match, id).Error; err != nil {
+func (r *RepositoryImpl) GetMatch(ctx context.Context, id uint) (*models.Match, error) {
+	var match models.Match
+	if err := r.db.WithContext(ctx).First(&match, id).Error; err != nil {
 		return nil, err
 	}
 
-	return match, nil
+	return &match, nil
 }
 
-func (r *RepositoryImpl) DeleteMatch(ctx context.Context, match *Match) error {
+func (r *RepositoryImpl) DeleteMatch(ctx context.Context, match *models.Match) error {
 	result := r.db.WithContext(ctx).
-		Where(Match{ID: match.ID}).
-		Model(&Match{}).
+		Where(models.Match{ID: match.ID}).
+		Model(&models.Match{}).
 		Delete(match)
 	if result.Error != nil {
 		return result.Error
@@ -73,13 +73,13 @@ func (r *RepositoryImpl) DeleteMatch(ctx context.Context, match *Match) error {
 	return nil
 }
 
-func (r *RepositoryImpl) GetMatchesWithPlayer(ctx context.Context, player *player.Player) ([]*Match, error) {
-	var matchesAsTeamA []*Match
-	var matchesAsTeamB []*Match
+func (r *RepositoryImpl) GetMatchesWithPlayer(ctx context.Context, player *models.Player) ([]*models.Match, error) {
+	var matchesAsTeamA []*models.Match
+	var matchesAsTeamB []*models.Match
 	tx := r.db.Begin()
 
 	err := tx.WithContext(ctx).
-		Model(&Match{}).
+		Model(&models.Match{}).
 		Where("teamA = ?", player).
 		Association("Players").
 		Find(&matchesAsTeamA)
@@ -89,7 +89,7 @@ func (r *RepositoryImpl) GetMatchesWithPlayer(ctx context.Context, player *playe
 	}
 
 	err = tx.WithContext(ctx).
-		Model(&Match{}).
+		Model(&models.Match{}).
 		Where("teamB = ?", player).
 		Association("Players").
 		Append(&matchesAsTeamB)

@@ -2,6 +2,8 @@ package match
 
 import (
 	"context"
+	"encoding/json"
+	"foosball/internal/models"
 	"foosball/internal/player"
 
 	"github.com/pkg/errors"
@@ -12,9 +14,10 @@ type Config struct {
 }
 
 type Service interface {
-	CreateMatch(ctx context.Context, teamA, teamB []*player.Player, scoreA, scoreB int, winner string) error
-	DeleteMatch(ctx context.Context, match *Match) error
-	GetMatchesWithPlayer(ctx context.Context, player *player.Player) ([]*Match, error)
+	CreateMatch(ctx context.Context, teamA, teamB []models.Player, goalsA, goalsB int) error
+	GetMatch(ctx context.Context, id uint) (*models.Match, error)
+	DeleteMatch(ctx context.Context, match *models.Match) error
+	GetMatchesWithPlayer(ctx context.Context, player *models.Player) ([]*models.Match, error)
 }
 
 type ServiceImpl struct {
@@ -29,24 +32,43 @@ func NewService(repo Repository, playerService player.Service) Service {
 	}
 }
 
-func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA []*player.Player, teamB []*player.Player, scoreA int, scoreB int, winner string) error {
-	match := &Match{
-		TeamA:  []player.Player{},
-		TeamB:  []player.Player{},
-		ScoreA: scoreA,
-		ScoreB: scoreB,
-		Winner: winner,
+func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []models.Player, goalsA, goalsB int) error {
+	idsA, err := s.playerIDsAsJSON(teamA)
+	if err != nil {
+		return err
+	}
+	idsB, err := s.playerIDsAsJSON(teamB)
+	if err != nil {
+		return err
 	}
 
-	err := s.repo.CreateMatch(ctx, match)
+	match := &models.Match{
+		TeamA:  idsA,
+		TeamB:  idsB,
+		GoalsA: goalsA,
+		GoalsB: goalsB,
+	}
+
+	err = s.repo.CreateMatch(ctx, match)
 	if err != nil {
 		return errors.Wrap(err, "failed to create match")
 	}
 
+	//TODO add match to players
+
 	return nil
 }
 
-func (s *ServiceImpl) DeleteMatch(ctx context.Context, match *Match) error {
+func (s *ServiceImpl) GetMatch(ctx context.Context, id uint) (*models.Match, error) {
+	match, err := s.repo.GetMatch(ctx, id)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get match")
+	}
+
+	return match, nil
+}
+
+func (s *ServiceImpl) DeleteMatch(ctx context.Context, match *models.Match) error {
 	err := s.repo.DeleteMatch(ctx, match)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete match")
@@ -54,11 +76,24 @@ func (s *ServiceImpl) DeleteMatch(ctx context.Context, match *Match) error {
 
 	return nil
 }
-func (s *ServiceImpl) GetMatchesWithPlayer(ctx context.Context, player *player.Player) ([]*Match, error) {
+func (s *ServiceImpl) GetMatchesWithPlayer(ctx context.Context, player *models.Player) ([]*models.Match, error) {
 	matches, err := s.repo.GetMatchesWithPlayer(ctx, player)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get matches with player")
 	}
 
 	return matches, nil
+}
+
+func (s *ServiceImpl) playerIDsAsJSON(players []models.Player) ([]byte, error) {
+	ids := make([]uint, len(players))
+	for i, p := range players {
+		ids[i] = p.ID
+	}
+	idsJSON, err := json.Marshal(ids)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal player ids")
+	}
+
+	return idsJSON, nil
 }

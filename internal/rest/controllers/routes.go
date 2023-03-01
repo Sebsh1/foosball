@@ -30,10 +30,15 @@ func Register(
 		ratingService: ratingService,
 	}
 
-	e.GET("/player", h.GetPlayer)
+	e.GET("/player/:id", h.GetPlayer)
 	e.POST("/player", h.PostPlayer)
-	e.DELETE("/player", h.DeletePlayer)
-	e.GET("/matches/player", h.GetMatchesWithPlayer)
+	e.DELETE("/player/:id", h.DeletePlayer)
+	e.GET("/player/:id/stats", h.GetPlayerStatistics)
+	e.GET("/player/:id/matches", h.GetMatchesWithPlayer)
+
+	e.GET("/match/:id", h.GetMatch)
 	e.POST("/match", h.PostMatch)
-	e.GET("/match", h.GetMatch)
+
+	e.GET("/leaderboard/rating/:topX", h.GetLeaderboardRating)
+	e.GET("/leaderboard/matches/:topX", h.GetLeaderboardMatchesPlayed)
 }

@@ -3,6 +3,7 @@ package rating
 import (
 	"context"
 	"fmt"
+	"foosball/internal/models"
 	"foosball/internal/player"
 
 	"github.com/pkg/errors"
@@ -11,8 +12,8 @@ import (
 type Team int
 
 const (
-	teamA Team = iota
-	teamB
+	TeamA Team = iota
+	TeamB
 )
 
 type Method int
@@ -24,15 +25,15 @@ const (
 )
 
 func (m Method) String() string {
-	return []string{"elo", "weighted", "rms"}[m]
+	return []string{"elo", "rms"}[m]
 }
 
 type Config struct {
-	Method string `mapstructure:"method" validate:"required" default:"elo"` // One of elo, weighted or rms
+	Method string `mapstructure:"method" validate:"required" default:"elo"`
 }
 
 type Service interface {
-	UpdateRatings(ctx context.Context, teamA []*player.Player, teamB []*player.Player, winner Team) error
+	UpdateRatings(ctx context.Context, teamA []*models.Player, teamB []*models.Player, winner Team) error
 }
 
 type ServiceImpl struct {
@@ -47,23 +48,21 @@ func NewService(config Config, playerService player.Service) Service {
 	}
 }
 
-func (s *ServiceImpl) UpdateRatings(ctx context.Context, teamA []*player.Player, teamB []*player.Player, winner Team) error {
-	teamAChanges := make([]int, len(teamA))
-	teamBChanges := make([]int, len(teamB))
+func (s *ServiceImpl) UpdateRatings(ctx context.Context, teamA []*models.Player, teamB []*models.Player, winner Team) error {
+	newRatingsTeamA := make([]int, len(teamA))
+	newRatingsTeamB := make([]int, len(teamB))
 
 	switch s.config.Method {
 	case Elo.String():
-		teamAChanges, teamBChanges = s.calculateRatingChangesElo(teamA, teamB)
-	case Weighted.String():
-		teamAChanges, teamBChanges = s.calculateRatingChangesWeighted(teamA, teamB)
+		newRatingsTeamA, newRatingsTeamB = s.calculateRatingChangesElo(teamA, teamB, winner)
 	case RMS.String():
-		teamAChanges, teamBChanges = s.calculateRatingChangesRMS(teamA, teamB)
+		newRatingsTeamA, newRatingsTeamB = s.calculateRatingChangesRMS(teamA, teamB, winner)
 	default:
 		return errors.New(fmt.Sprintf("unrecognized rating method: %s", s.config.Method))
 	}
 
 	players := append(teamA, teamB...)
-	ratings := append(teamAChanges, teamBChanges...)
+	ratings := append(newRatingsTeamA, newRatingsTeamB...)
 	err := s.playerService.UpdatePlayers(ctx, players, ratings)
 	if err != nil {
 		return errors.Wrap(err, "failed to update ratings")

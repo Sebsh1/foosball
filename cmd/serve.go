@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"foosball/internal/match"
+	"foosball/internal/models"
 	"foosball/internal/mysql"
 	"foosball/internal/player"
 	"foosball/internal/rating"
@@ -37,12 +38,12 @@ func serve(cmd *cobra.Command, args []string) {
 
 	db, err := mysql.NewClient(ctx, config.DB)
 	if err != nil {
-		log.WithError(err).Fatal("failed to connect to Monitor database")
+		log.WithError(err).Fatal("failed to connect to database")
 	}
 
 	if err := db.AutoMigrate(
-		&player.Player{},
-		&match.Match{},
+		&models.Player{},
+		&models.Match{},
 	); err != nil {
 		log.WithError(err).Fatal("failed to auto migrate database")
 	}
@@ -85,7 +86,7 @@ func serve(cmd *cobra.Command, args []string) {
 	defer stop()
 
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
-		log.WithError(err).Error("Failed to shutdown internal http server")
+		log.WithError(err).Error("failed to shutdown internal http server")
 	}
 
 }

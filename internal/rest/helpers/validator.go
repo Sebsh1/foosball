@@ -18,5 +18,8 @@ func NewValidator() *Validator {
 }
 
 func (cv *Validator) Validate(i interface{}) error {
-	return errors.Wrap(cv.validator.Struct(i), "validation failed")
+	if err := cv.validator.Struct(i); err != nil {
+		return errors.Wrap(err, "validation failed")
+	}
+	return nil
 }

@@ -50,7 +50,7 @@ func NewServer(
 		}),
 	)
 
-	root := e.Group("/")
+	root := e.Group("/foosball")
 
 	controllers.Register(
 		root,
