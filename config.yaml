@@ -12,3 +12,6 @@ db:
 
 rating:
   method: elo
+
+season:
+  length: 90d

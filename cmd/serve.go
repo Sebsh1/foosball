@@ -3,11 +3,11 @@ package cmd
 import (
 	"context"
 	"foosball/internal/match"
-	"foosball/internal/models"
 	"foosball/internal/mysql"
 	"foosball/internal/player"
 	"foosball/internal/rating"
 	"foosball/internal/rest"
+	"foosball/internal/team"
 	"os"
 	"os/signal"
 	"syscall"
@@ -42,8 +42,8 @@ func serve(cmd *cobra.Command, args []string) {
 	}
 
 	if err := db.AutoMigrate(
-		&models.Player{},
-		&models.Match{},
+		&player.Player{},
+		&match.Match{},
 	); err != nil {
 		log.WithError(err).Fatal("failed to auto migrate database")
 	}
@@ -56,12 +56,16 @@ func serve(cmd *cobra.Command, args []string) {
 
 	ratingService := rating.NewService(config.Rating, playerService)
 
+	teamRepo := team.NewRepository(db)
+	teamService := team.NewService(teamRepo)
+
 	httpServer, err := rest.NewServer(
 		config.Rest,
 		log,
 		playerService,
 		matchService,
 		ratingService,
+		teamService,
 	)
 	if err != nil {
 		log.WithError(err).Fatal("failed to create http server")

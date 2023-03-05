@@ -40,37 +40,3 @@ func (h *Handlers) GetLeaderboardRating(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, resp)
 }
-
-type getLeaderboardMatchesRequest struct {
-	Top int `query:"top" validate:"numeric,max=100,min=1" default:"10"`
-}
-
-type getLeaderboardMatchesResponse struct {
-	Names         []string `json:"names" validate:"required"`
-	MatchesPlayed []int    `json:"matchesPlayed" validate:"required"`
-}
-
-func (h *Handlers) GetLeaderboardMatchesPlayed(c echo.Context) error {
-	ctx := c.Request().Context()
-
-	req, err := helpers.Bind[getLeaderboardMatchesRequest](c)
-	if err != nil {
-		return echo.ErrBadRequest
-	}
-
-	players, err := h.playerService.GetTopPlayersByMatches(ctx, req.Top)
-
-	names := make([]string, len(players))
-	matchesPlayed := make([]int, len(players))
-	for i, p := range players {
-		names[i] = p.Name
-		matchesPlayed[i] = len(p.Matches.Data)
-	}
-
-	resp := getLeaderboardMatchesResponse{
-		Names:         names,
-		MatchesPlayed: matchesPlayed,
-	}
-
-	return c.JSON(http.StatusOK, resp)
-}

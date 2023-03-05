@@ -4,6 +4,7 @@ import (
 	"foosball/internal/match"
 	"foosball/internal/player"
 	"foosball/internal/rating"
+	"foosball/internal/team"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
@@ -14,6 +15,7 @@ type Handlers struct {
 	playerService player.Service
 	matchService  match.Service
 	ratingService rating.Service
+	teamService   team.Service
 }
 
 func Register(
@@ -22,12 +24,14 @@ func Register(
 	playerService player.Service,
 	matchService match.Service,
 	ratingService rating.Service,
+	teamService team.Service,
 ) {
 	h := &Handlers{
 		logger:        logger,
 		playerService: playerService,
 		matchService:  matchService,
 		ratingService: ratingService,
+		teamService:   teamService,
 	}
 
 	e.GET("/player/:id", h.GetPlayer)
@@ -40,5 +44,4 @@ func Register(
 	e.POST("/match", h.PostMatch)
 
 	e.GET("/leaderboard/rating", h.GetLeaderboardRating)
-	e.GET("/leaderboard/matches", h.GetLeaderboardMatchesPlayed)
 }

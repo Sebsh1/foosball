@@ -2,11 +2,10 @@ package match
 
 import (
 	"context"
-	"foosball/internal/models"
 	"foosball/internal/player"
+	"foosball/internal/team"
 
 	"github.com/pkg/errors"
-	"gorm.io/datatypes"
 )
 
 type Config struct {
@@ -14,10 +13,10 @@ type Config struct {
 }
 
 type Service interface {
-	CreateMatch(ctx context.Context, teamA, teamB []*models.Player, goalsA, goalsB int) error
-	GetMatch(ctx context.Context, id uint) (*models.Match, error)
-	DeleteMatch(ctx context.Context, match *models.Match) error
-	GetMatchesWithPlayer(ctx context.Context, player *models.Player) ([]*models.Match, error)
+	CreateMatch(ctx context.Context, teamA, teamB team.Team, goalsA, goalsB int) error
+	GetMatch(ctx context.Context, id uint) (*Match, error)
+	DeleteMatch(ctx context.Context, match *Match) error
+	GetMatchesWithPlayerID(ctx context.Context, id uint) ([]*Match, error)
 }
 
 type ServiceImpl struct {
@@ -32,20 +31,10 @@ func NewService(repo Repository, playerService player.Service) Service {
 	}
 }
 
-func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []*models.Player, goalsA, goalsB int) error {
-	teamAIDs := make([]uint, len(teamA))
-	for i, p := range teamA {
-		teamAIDs[i] = p.ID
-	}
-
-	teamBIDs := make([]uint, len(teamB))
-	for i, p := range teamB {
-		teamAIDs[i] = p.ID
-	}
-
-	match := &models.Match{
-		TeamA:  datatypes.JSONType[[]uint]{Data: teamAIDs},
-		TeamB:  datatypes.JSONType[[]uint]{Data: teamBIDs},
+func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB team.Team, goalsA, goalsB int) error {
+	match := &Match{
+		TeamA:  teamA,
+		TeamB:  teamA,
 		GoalsA: goalsA,
 		GoalsB: goalsB,
 	}
@@ -55,12 +44,10 @@ func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []*models.Pl
 		return errors.Wrap(err, "failed to create match")
 	}
 
-	//TODO add match to players
-
 	return nil
 }
 
-func (s *ServiceImpl) GetMatch(ctx context.Context, id uint) (*models.Match, error) {
+func (s *ServiceImpl) GetMatch(ctx context.Context, id uint) (*Match, error) {
 	match, err := s.repo.GetMatch(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get match")
@@ -69,7 +56,7 @@ func (s *ServiceImpl) GetMatch(ctx context.Context, id uint) (*models.Match, err
 	return match, nil
 }
 
-func (s *ServiceImpl) DeleteMatch(ctx context.Context, match *models.Match) error {
+func (s *ServiceImpl) DeleteMatch(ctx context.Context, match *Match) error {
 	err := s.repo.DeleteMatch(ctx, match)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete match")
@@ -77,10 +64,10 @@ func (s *ServiceImpl) DeleteMatch(ctx context.Context, match *models.Match) erro
 
 	return nil
 }
-func (s *ServiceImpl) GetMatchesWithPlayer(ctx context.Context, player *models.Player) ([]*models.Match, error) {
-	matches, err := s.repo.GetMatchesWithPlayer(ctx, player)
+func (s *ServiceImpl) GetMatchesWithPlayerID(ctx context.Context, id uint) ([]*Match, error) {
+	matches, err := s.repo.GetMatchesWithPlayerID(ctx, id)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get matches with player")
+		return nil, errors.Wrapf(err, "failed to get matches with player id %d", id)
 	}
 
 	return matches, nil

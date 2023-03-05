@@ -5,6 +5,7 @@ import (
 	"foosball/internal/mysql"
 	"foosball/internal/rating"
 	"foosball/internal/rest"
+	"foosball/internal/season"
 	"reflect"
 	"regexp"
 	"strings"
@@ -26,6 +27,7 @@ type Config struct {
 	Rest   rest.Config   `mapstructure:"rest" validate:"dive"`
 	DB     mysql.Config  `mapstructure:"db" validate:"dive"`
 	Rating rating.Config `mapstructure:"rating" validate:"dive"`
+	Season season.Config `mapstructure:"season" validate:"dive"`
 }
 
 type LogConfig struct {

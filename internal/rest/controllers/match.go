@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"foosball/internal/rest/helpers"
+	"foosball/internal/team"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -12,10 +13,10 @@ type getMatchRequest struct {
 }
 
 type getMatchResponse struct {
-	TeamA  []uint `json:"teamA" validate:"required"`
-	TeamB  []uint `json:"teamB" validate:"required"`
-	GoalsA int    `json:"goalsA" validate:"required,numeric,gte=0,lte=10"`
-	GoalsB int    `json:"goalsB" validate:"required,numeric,gte=0,lte=10"`
+	TeamA  team.Team `json:"teamA" validate:"required"`
+	TeamB  team.Team `json:"teamB" validate:"required"`
+	GoalsA int       `json:"goalsA" validate:"required,numeric,gte=0,lte=10"`
+	GoalsB int       `json:"goalsB" validate:"required,numeric,gte=0,lte=10"`
 }
 
 func (h *Handlers) GetMatch(c echo.Context) error {
@@ -34,8 +35,8 @@ func (h *Handlers) GetMatch(c echo.Context) error {
 	}
 
 	resp := getMatchResponse{
-		TeamA:  match.TeamA.Data,
-		TeamB:  match.TeamB.Data,
+		TeamA:  match.TeamA,
+		TeamB:  match.TeamA,
 		GoalsA: match.GoalsA,
 		GoalsB: match.GoalsB,
 	}
@@ -43,16 +44,16 @@ func (h *Handlers) GetMatch(c echo.Context) error {
 }
 
 type postMatchRequest struct {
-	TeamA  []uint `json:"teamA" validate:"required"`
-	TeamB  []uint `json:"teamB" validate:"required"`
+	TeamA  uint   `json:"teamA" validate:"required"`
+	TeamB  uint   `json:"teamB" validate:"required"`
 	GoalsA int    `json:"goalsA" validate:"required,numeric,min=0,max=10"`
 	GoalsB int    `json:"goalsB" validate:"required,numeric,min=0,max=10"`
 	Winner string `json:"winner" validate:"required,ascii,oneof=A B"`
 }
 
 type postMatchResponse struct {
-	TeamA  []uint `json:"teamA" validate:"required"`
-	TeamB  []uint `json:"teamB" validate:"required"`
+	TeamA  uint   `json:"teamA" validate:"required"`
+	TeamB  uint   `json:"teamB" validate:"required"`
 	GoalsA int    `json:"goalsA" validate:"required,numeric,min=0,max=10"`
 	GoalsB int    `json:"goalsB" validate:"required,numeric,min=0,max=10"`
 	Winner string `json:"winner" validate:"required,ascii,oneof=A B"`
@@ -66,18 +67,18 @@ func (h *Handlers) PostMatch(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	teamA, err := h.playerService.GetPlayers(ctx, req.TeamA)
+	teamA, err := h.teamService.GetTeam(ctx, req.TeamA)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get team A player ids")
+		h.logger.WithError(err).Error("failed to get team A")
 		return echo.ErrInternalServerError
 	}
-	teamB, err := h.playerService.GetPlayers(ctx, req.TeamB)
+	teamB, err := h.teamService.GetTeam(ctx, req.TeamB)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get team B player ids")
+		h.logger.WithError(err).Error("failed to get team B")
 		return echo.ErrInternalServerError
 	}
 
-	err = h.matchService.CreateMatch(ctx, teamA, teamB, req.GoalsA, req.GoalsB)
+	err = h.matchService.CreateMatch(ctx, *teamA, *teamB, req.GoalsA, req.GoalsB)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to create match")
 		return echo.ErrInternalServerError

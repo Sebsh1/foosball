@@ -2,19 +2,17 @@ package player
 
 import (
 	"context"
-	"foosball/internal/models"
 
 	"github.com/pkg/errors"
 )
 
 type Service interface {
-	GetPlayer(ctx context.Context, id uint) (*models.Player, error)
-	GetPlayers(ctx context.Context, ids []uint) ([]*models.Player, error)
+	GetPlayer(ctx context.Context, id uint) (*Player, error)
+	GetPlayers(ctx context.Context, ids []uint) ([]*Player, error)
 	CreatePlayer(ctx context.Context, name string) error
 	DeletePlayer(ctx context.Context, id uint) error
-	UpdatePlayerRatings(ctx context.Context, players []*models.Player, ratings []int) error
-	GetTopPlayersByRating(ctx context.Context, top int) ([]*models.Player, error)
-	GetTopPlayersByMatches(ctx context.Context, top int) ([]*models.Player, error)
+	UpdatePlayerRatings(ctx context.Context, players []*Player, ratings []int) error
+	GetTopPlayersByRating(ctx context.Context, top int) ([]*Player, error)
 }
 
 type ServiceImpl struct {
@@ -27,7 +25,7 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) GetPlayer(ctx context.Context, id uint) (*models.Player, error) {
+func (s *ServiceImpl) GetPlayer(ctx context.Context, id uint) (*Player, error) {
 	player, err := s.repo.GetPlayer(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -39,7 +37,7 @@ func (s *ServiceImpl) GetPlayer(ctx context.Context, id uint) (*models.Player, e
 	return player, nil
 }
 
-func (s *ServiceImpl) GetPlayers(ctx context.Context, ids []uint) ([]*models.Player, error) {
+func (s *ServiceImpl) GetPlayers(ctx context.Context, ids []uint) ([]*Player, error) {
 	players, err := s.repo.GetPlayers(ctx, ids)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -52,7 +50,7 @@ func (s *ServiceImpl) GetPlayers(ctx context.Context, ids []uint) ([]*models.Pla
 }
 
 func (s *ServiceImpl) CreatePlayer(ctx context.Context, name string) error {
-	player := &models.Player{
+	player := &Player{
 		Name:   name,
 		Rating: 1000,
 	}
@@ -79,7 +77,7 @@ func (s *ServiceImpl) DeletePlayer(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *ServiceImpl) UpdatePlayerRatings(ctx context.Context, players []*models.Player, ratings []int) error {
+func (s *ServiceImpl) UpdatePlayerRatings(ctx context.Context, players []*Player, ratings []int) error {
 	for i, p := range players {
 		p.Rating += ratings[i]
 	}
@@ -92,17 +90,8 @@ func (s *ServiceImpl) UpdatePlayerRatings(ctx context.Context, players []*models
 	return nil
 }
 
-func (s *ServiceImpl) GetTopPlayersByRating(ctx context.Context, top int) ([]*models.Player, error) {
+func (s *ServiceImpl) GetTopPlayersByRating(ctx context.Context, top int) ([]*Player, error) {
 	players, err := s.repo.GetTopPlayersByRating(ctx, top)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get players")
-	}
-
-	return players, nil
-}
-
-func (s *ServiceImpl) GetTopPlayersByMatches(ctx context.Context, top int) ([]*models.Player, error) {
-	players, err := s.repo.GetTopPlayersByMatches(ctx, top)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get players")
 	}
