@@ -2,16 +2,16 @@ package team
 
 import (
 	"context"
-	"fmt"
-	"foosball/internal/player"
+	"foosball/internal/models"
 
 	"github.com/pkg/errors"
 )
 
 type Service interface {
-	GetTeam(ctx context.Context, id uint) (*Team, error)
-	CreateTeam(ctx context.Context, players []*player.Player) error
+	GetTeam(ctx context.Context, id uint) (*models.Team, error)
+	CreateTeam(ctx context.Context, players []*models.Player) error
 	DeleteTeam(ctx context.Context, id uint) error
+	UpdateTeam(ctx context.Context, team *models.Team) error
 }
 
 type ServiceImpl struct {
@@ -24,7 +24,7 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) GetTeam(ctx context.Context, id uint) (*Team, error) {
+func (s *ServiceImpl) GetTeam(ctx context.Context, id uint) (*models.Team, error) {
 	player, err := s.repo.GetTeam(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -36,21 +36,10 @@ func (s *ServiceImpl) GetTeam(ctx context.Context, id uint) (*Team, error) {
 	return player, nil
 }
 
-func (s *ServiceImpl) CreateTeam(ctx context.Context, players []*player.Player) error {
-	team := &Team{}
-	switch len(players) {
-	case 3:
-		team.PlayerC = players[2]
-		fallthrough
-	case 2:
-		team.PlayerB = players[1]
-		fallthrough
-	case 1:
-		team.PlayerA = players[0]
-	default:
-		return errors.New(fmt.Sprintf("unsupported number of players on team: %d", len(players)))
+func (s *ServiceImpl) CreateTeam(ctx context.Context, players []*models.Player) error {
+	team := &models.Team{
+		Players: players,
 	}
-
 	err := s.repo.CreateTeam(ctx, team)
 	if err != nil {
 		return errors.Wrap(err, "failed to create team")
@@ -68,6 +57,15 @@ func (s *ServiceImpl) DeleteTeam(ctx context.Context, id uint) error {
 	err = s.repo.DeleteTeam(ctx, team)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete team")
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) UpdateTeam(ctx context.Context, team *models.Team) error {
+	err := s.repo.UpdateTeam(ctx, team)
+	if err != nil {
+		return errors.Wrap(err, "failed to update team")
 	}
 
 	return nil

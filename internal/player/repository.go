@@ -2,6 +2,7 @@ package player
 
 import (
 	"context"
+	"foosball/internal/models"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
@@ -18,12 +19,12 @@ var (
 )
 
 type Repository interface {
-	GetPlayer(ctx context.Context, id uint) (*Player, error)
-	GetPlayers(ctx context.Context, ids []uint) ([]*Player, error)
-	CreatePlayer(ctx context.Context, player *Player) error
-	DeletePlayer(ctx context.Context, player *Player) error
-	UpdatePlayers(ctx context.Context, playesr []*Player) error
-	GetTopPlayersByRating(ctx context.Context, top int) ([]*Player, error)
+	GetPlayer(ctx context.Context, id uint) (*models.Player, error)
+	GetPlayers(ctx context.Context, ids []uint) ([]*models.Player, error)
+	CreatePlayer(ctx context.Context, player *models.Player) error
+	DeletePlayer(ctx context.Context, player *models.Player) error
+	UpdatePlayers(ctx context.Context, playesr []*models.Player) error
+	GetTopPlayersByRating(ctx context.Context, top int) ([]*models.Player, error)
 }
 
 type RepositoryImpl struct {
@@ -36,11 +37,11 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-func (r *RepositoryImpl) GetPlayer(ctx context.Context, id uint) (*Player, error) {
-	var player Player
+func (r *RepositoryImpl) GetPlayer(ctx context.Context, id uint) (*models.Player, error) {
+	var player models.Player
 
 	result := r.db.WithContext(ctx).
-		Where(Player{ID: id}).
+		Where(models.Player{ID: id}).
 		First(&player)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -53,8 +54,8 @@ func (r *RepositoryImpl) GetPlayer(ctx context.Context, id uint) (*Player, error
 	return &player, nil
 }
 
-func (r *RepositoryImpl) GetPlayers(ctx context.Context, ids []uint) ([]*Player, error) {
-	var players []*Player
+func (r *RepositoryImpl) GetPlayers(ctx context.Context, ids []uint) ([]*models.Player, error) {
+	var players []*models.Player
 
 	result := r.db.WithContext(ctx).
 		Find(&players, ids)
@@ -69,7 +70,7 @@ func (r *RepositoryImpl) GetPlayers(ctx context.Context, ids []uint) ([]*Player,
 	return players, nil
 }
 
-func (r *RepositoryImpl) CreatePlayer(ctx context.Context, player *Player) error {
+func (r *RepositoryImpl) CreatePlayer(ctx context.Context, player *models.Player) error {
 	if err := r.db.WithContext(ctx).Create(&player).Error; err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
@@ -82,10 +83,10 @@ func (r *RepositoryImpl) CreatePlayer(ctx context.Context, player *Player) error
 	return nil
 }
 
-func (r *RepositoryImpl) DeletePlayer(ctx context.Context, player *Player) error {
+func (r *RepositoryImpl) DeletePlayer(ctx context.Context, player *models.Player) error {
 	result := r.db.WithContext(ctx).
-		Where(Player{ID: player.ID}).
-		Model(&Player{}).
+		Where(models.Player{ID: player.ID}).
+		Model(&models.Player{}).
 		Delete(player)
 	if result.Error != nil {
 		return result.Error
@@ -98,7 +99,7 @@ func (r *RepositoryImpl) DeletePlayer(ctx context.Context, player *Player) error
 	return nil
 }
 
-func (r *RepositoryImpl) UpdatePlayers(ctx context.Context, players []*Player) error {
+func (r *RepositoryImpl) UpdatePlayers(ctx context.Context, players []*models.Player) error {
 	tx := r.db.WithContext(ctx).Begin()
 	if err := tx.Error; err != nil {
 		return err
@@ -106,8 +107,8 @@ func (r *RepositoryImpl) UpdatePlayers(ctx context.Context, players []*Player) e
 
 	for _, p := range players {
 		result := tx.WithContext(ctx).
-			Where(Player{ID: p.ID}).
-			Model(&Player{}).
+			Where(models.Player{ID: p.ID}).
+			Model(&models.Player{}).
 			Select("rating").
 			Updates(p)
 		if result.Error != nil {
@@ -126,9 +127,8 @@ func (r *RepositoryImpl) UpdatePlayers(ctx context.Context, players []*Player) e
 	return nil
 }
 
-func (r *RepositoryImpl) GetTopPlayersByRating(ctx context.Context, top int) ([]*Player, error) {
-	// TODO currently doesnt work
-	var players []*Player
+func (r *RepositoryImpl) GetTopPlayersByRating(ctx context.Context, top int) ([]*models.Player, error) {
+	var players []*models.Player
 
 	result := r.db.WithContext(ctx).
 		Select(&players).

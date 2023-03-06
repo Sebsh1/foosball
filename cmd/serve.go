@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"foosball/internal/match"
+	"foosball/internal/models"
 	"foosball/internal/mysql"
 	"foosball/internal/player"
 	"foosball/internal/rating"
@@ -42,8 +43,11 @@ func serve(cmd *cobra.Command, args []string) {
 	}
 
 	if err := db.AutoMigrate(
-		&player.Player{},
-		&match.Match{},
+		&models.Player{},
+		&models.Team{},
+		&models.Match{},
+		//&models.Season{},
+		//&models.Tournament{},
 	); err != nil {
 		log.WithError(err).Fatal("failed to auto migrate database")
 	}

@@ -3,8 +3,8 @@ package rating
 import (
 	"context"
 	"fmt"
+	"foosball/internal/models"
 	"foosball/internal/player"
-	"foosball/internal/team"
 
 	"github.com/pkg/errors"
 )
@@ -33,7 +33,7 @@ type Config struct {
 }
 
 type Service interface {
-	UpdateRatings(ctx context.Context, teamA, teamB *team.Team, winner Team) error
+	UpdateRatings(ctx context.Context, teamA, teamB *models.Team, winner Team) error
 }
 
 type ServiceImpl struct {
@@ -48,11 +48,9 @@ func NewService(config Config, playerService player.Service) Service {
 	}
 }
 
-func (s *ServiceImpl) UpdateRatings(ctx context.Context, teamA, teamB *team.Team, winner Team) error {
-	playersTeamA := teamA.GetPlayers()
-	playersTeamB := teamB.GetPlayers()
-	newRatingsTeamA := make([]int, len(playersTeamA))
-	newRatingsTeamB := make([]int, len(playersTeamB))
+func (s *ServiceImpl) UpdateRatings(ctx context.Context, teamA, teamB *models.Team, winner Team) error {
+	newRatingsTeamA := make([]int, len(teamA.Players))
+	newRatingsTeamB := make([]int, len(teamB.Players))
 
 	switch s.config.Method {
 	case Elo.String():
@@ -63,9 +61,9 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, teamA, teamB *team.Team
 		return errors.New(fmt.Sprintf("unrecognized rating method: %s", s.config.Method))
 	}
 
-	players := append(playersTeamA, playersTeamB...)
+	players := append(teamA.Players, teamB.Players...)
 	ratings := append(newRatingsTeamA, newRatingsTeamB...)
-	err := s.playerService.UpdatePlayerRatings(ctx, players, ratings)
+	err := s.playerService.UpdatePlayers(ctx, players, ratings)
 	if err != nil {
 		return errors.Wrap(err, "failed to update ratings")
 	}

@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"foosball/internal/models"
 	"foosball/internal/rest/helpers"
-	"foosball/internal/team"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -13,10 +13,10 @@ type getMatchRequest struct {
 }
 
 type getMatchResponse struct {
-	TeamA  team.Team `json:"teamA" validate:"required"`
-	TeamB  team.Team `json:"teamB" validate:"required"`
-	GoalsA int       `json:"goalsA" validate:"required,numeric,gte=0,lte=10"`
-	GoalsB int       `json:"goalsB" validate:"required,numeric,gte=0,lte=10"`
+	TeamA  models.Team `json:"teamA" validate:"required"`
+	TeamB  models.Team `json:"teamB" validate:"required"`
+	GoalsA int         `json:"goalsA" validate:"required,numeric,gte=0,lte=10"`
+	GoalsB int         `json:"goalsB" validate:"required,numeric,gte=0,lte=10"`
 }
 
 func (h *Handlers) GetMatch(c echo.Context) error {
