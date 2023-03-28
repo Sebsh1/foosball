@@ -44,10 +44,10 @@ func serve(cmd *cobra.Command, args []string) {
 
 	if err := db.AutoMigrate(
 		&models.Player{},
-		&models.Team{},
 		&models.Match{},
-		//&models.Season{},
-		//&models.Tournament{},
+		&models.Team{},
+		&models.Season{},
+		&models.Tournament{},
 	); err != nil {
 		log.WithError(err).Fatal("failed to auto migrate database")
 	}

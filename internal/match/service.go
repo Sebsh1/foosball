@@ -33,10 +33,12 @@ func NewService(repo Repository, playerService player.Service) Service {
 
 func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB models.Team, goalsA, goalsB int) error {
 	match := &models.Match{
-		TeamA:  teamA,
-		TeamB:  teamA,
-		GoalsA: goalsA,
-		GoalsB: goalsB,
+		TeamAID: teamA.ID,
+		TeamBID: teamB.ID,
+		TeamA:   teamA,
+		TeamB:   teamA,
+		GoalsA:  goalsA,
+		GoalsB:  goalsB,
 	}
 
 	err := s.repo.CreateMatch(ctx, match)

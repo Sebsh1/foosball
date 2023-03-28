@@ -10,10 +10,10 @@ type Match struct {
 
 	TeamAID uint
 	TeamBID uint
-	TeamA   Team `gorm:"index;not null;foreignKey:TeamAID"`
-	TeamB   Team `gorm:"index;not null;foreignKey:TeamBID"`
-	GoalsA  int  `gorm:"index;not null"`
-	GoalsB  int  `gorm:"index;not null"`
+	TeamA   Team `gorm:"index;not null;foreignKey:ID;references:TeamAID"`
+	TeamB   Team `gorm:"index;not null;foreignKey:ID;references:TeamBID"`
+	GoalsA  int  `gorm:"not null"`
+	GoalsB  int  `gorm:"not null"`
 
 	CreatedAt time.Time
 }
