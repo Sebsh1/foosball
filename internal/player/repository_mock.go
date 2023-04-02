@@ -49,17 +49,17 @@ func (mr *MockRepositoryMockRecorder) CreatePlayer(ctx, player interface{}) *gom
 }
 
 // DeletePlayer mocks base method.
-func (m *MockRepository) DeletePlayer(ctx context.Context, player *Player) error {
+func (m *MockRepository) DeletePlayer(ctx context.Context, id uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeletePlayer", ctx, player)
+	ret := m.ctrl.Call(m, "DeletePlayer", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeletePlayer indicates an expected call of DeletePlayer.
-func (mr *MockRepositoryMockRecorder) DeletePlayer(ctx, player interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) DeletePlayer(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePlayer", reflect.TypeOf((*MockRepository)(nil).DeletePlayer), ctx, player)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePlayer", reflect.TypeOf((*MockRepository)(nil).DeletePlayer), ctx, id)
 }
 
 // GetPlayer mocks base method.

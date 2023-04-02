@@ -24,7 +24,7 @@ type Repository interface {
 	GetTopPlayersByRating(ctx context.Context, top int) ([]*Player, error)
 	CreatePlayer(ctx context.Context, player *Player) error
 	UpdatePlayers(ctx context.Context, playesr []*Player) error
-	DeletePlayer(ctx context.Context, player *Player) error
+	DeletePlayer(ctx context.Context, id uint) error
 }
 
 type RepositoryImpl struct {
@@ -83,11 +83,9 @@ func (r *RepositoryImpl) CreatePlayer(ctx context.Context, player *Player) error
 	return nil
 }
 
-func (r *RepositoryImpl) DeletePlayer(ctx context.Context, player *Player) error {
+func (r *RepositoryImpl) DeletePlayer(ctx context.Context, id uint) error {
 	result := r.db.WithContext(ctx).
-		Where(Player{ID: player.ID}).
-		Model(&Player{}).
-		Delete(player)
+		Delete(Player{}, id)
 	if result.Error != nil {
 		return result.Error
 	}

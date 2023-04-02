@@ -12,7 +12,7 @@ type Service interface {
 	GetPlayers(ctx context.Context, ids []uint) ([]*Player, error)
 	GetTopPlayersByRating(ctx context.Context, top int) ([]*Player, error)
 	CreatePlayer(ctx context.Context, name string) error
-	UpdatePlayers(ctx context.Context, players []*Player, ratingChange []int) error
+	UpdatePlayers(ctx context.Context, players []*Player, newRatings []int) error
 	DeletePlayer(ctx context.Context, id uint) error
 }
 
@@ -68,12 +68,7 @@ func (s *ServiceImpl) CreatePlayer(ctx context.Context, name string) error {
 }
 
 func (s *ServiceImpl) DeletePlayer(ctx context.Context, id uint) error {
-	player, err := s.repo.GetPlayer(ctx, id)
-	if err != nil {
-		return errors.Wrap(err, "failed to get player")
-	}
-
-	err = s.repo.DeletePlayer(ctx, player)
+	err := s.repo.DeletePlayer(ctx, id)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete player")
 	}
@@ -82,10 +77,6 @@ func (s *ServiceImpl) DeletePlayer(ctx context.Context, id uint) error {
 }
 
 func (s *ServiceImpl) UpdatePlayers(ctx context.Context, players []*Player, ratingChange []int) error {
-	for i, p := range players {
-		p.Rating += ratingChange[i]
-	}
-
 	err := s.repo.UpdatePlayers(ctx, players)
 	if err != nil {
 		return errors.Wrap(err, "failed to update players")
