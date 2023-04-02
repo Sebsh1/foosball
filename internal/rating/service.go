@@ -1,19 +1,13 @@
+//go:generate mockgen --source=service.go -destination=service_mock.go -package=rating
 package rating
 
 import (
 	"context"
 	"fmt"
-	"foosball/internal/models"
 	"foosball/internal/player"
+	"foosball/internal/team"
 
 	"github.com/pkg/errors"
-)
-
-type Team int
-
-const (
-	TeamA Team = iota
-	TeamB
 )
 
 type Method int
@@ -33,7 +27,7 @@ type Config struct {
 }
 
 type Service interface {
-	UpdateRatings(ctx context.Context, teamA, teamB *models.Team, winner Team) error
+	UpdateRatings(ctx context.Context, winners, losers *team.Team) error
 }
 
 type ServiceImpl struct {
@@ -48,21 +42,21 @@ func NewService(config Config, playerService player.Service) Service {
 	}
 }
 
-func (s *ServiceImpl) UpdateRatings(ctx context.Context, teamA, teamB *models.Team, winner Team) error {
-	newRatingsTeamA := make([]int, len(teamA.Players))
-	newRatingsTeamB := make([]int, len(teamB.Players))
+func (s *ServiceImpl) UpdateRatings(ctx context.Context, winners, losers *team.Team) error {
+	newRatingsWinners := make([]int, len(winners.Players))
+	newRatingsLosers := make([]int, len(losers.Players))
 
 	switch s.config.Method {
 	case Elo.String():
-		newRatingsTeamA, newRatingsTeamB = s.calculateRatingChangesElo(teamA, teamB, winner)
+		newRatingsWinners, newRatingsLosers = s.calculateRatingChangesElo(winners, losers)
 	case RMS.String():
-		newRatingsTeamA, newRatingsTeamB = s.calculateRatingChangesRMS(teamA, teamB, winner)
+		newRatingsWinners, newRatingsLosers = s.calculateRatingChangesRMS(winners, losers)
 	default:
 		return errors.New(fmt.Sprintf("unrecognized rating method: %s", s.config.Method))
 	}
 
-	players := append(teamA.Players, teamB.Players...)
-	ratings := append(newRatingsTeamA, newRatingsTeamB...)
+	players := append(winners.Players, losers.Players...)
+	ratings := append(newRatingsWinners, newRatingsLosers...)
 	err := s.playerService.UpdatePlayers(ctx, players, ratings)
 	if err != nil {
 		return errors.Wrap(err, "failed to update ratings")

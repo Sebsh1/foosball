@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"foosball/internal/authentication"
 	"foosball/internal/mysql"
 	"foosball/internal/rating"
 	"foosball/internal/rest"
@@ -23,11 +24,12 @@ var cfgFile string
 const shutdownPeriod = 15 * time.Second
 
 type Config struct {
-	Log    LogConfig     `mapstructure:"log" validate:"dive"`
-	Rest   rest.Config   `mapstructure:"rest" validate:"dive"`
-	DB     mysql.Config  `mapstructure:"db" validate:"dive"`
-	Rating rating.Config `mapstructure:"rating" validate:"dive"`
-	Season season.Config `mapstructure:"season" validate:"dive"`
+	Log    LogConfig             `mapstructure:"log" validate:"dive"`
+	Rest   rest.Config           `mapstructure:"rest" validate:"dive"`
+	Auth   authentication.Config `mapstructure:"auth" validate:"dive"`
+	DB     mysql.Config          `mapstructure:"db" validate:"dive"`
+	Rating rating.Config         `mapstructure:"rating" validate:"dive"`
+	Season season.Config         `mapstructure:"season" validate:"dive"`
 }
 
 type LogConfig struct {

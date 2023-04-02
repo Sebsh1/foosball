@@ -1,8 +1,8 @@
+//go:generate mockgen --source=repository.go -destination=repository_mock.go -package=team
 package team
 
 import (
 	"context"
-	"foosball/internal/models"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
@@ -19,10 +19,10 @@ var (
 )
 
 type Repository interface {
-	GetTeam(ctx context.Context, id uint) (*models.Team, error)
-	CreateTeam(ctx context.Context, team *models.Team) error
-	DeleteTeam(ctx context.Context, team *models.Team) error
-	UpdateTeam(ctx context.Context, team *models.Team) error
+	GetTeam(ctx context.Context, id uint) (*Team, error)
+	CreateTeam(ctx context.Context, team *Team) error
+	UpdateTeam(ctx context.Context, team *Team) error
+	DeleteTeam(ctx context.Context, team *Team) error
 }
 
 type RepositoryImpl struct {
@@ -35,11 +35,11 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-func (r *RepositoryImpl) GetTeam(ctx context.Context, id uint) (*models.Team, error) {
-	var team models.Team
+func (r *RepositoryImpl) GetTeam(ctx context.Context, id uint) (*Team, error) {
+	var team Team
 
 	result := r.db.WithContext(ctx).
-		Where(models.Team{ID: id}).
+		Where(Team{ID: id}).
 		First(&team)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -52,7 +52,7 @@ func (r *RepositoryImpl) GetTeam(ctx context.Context, id uint) (*models.Team, er
 	return &team, nil
 }
 
-func (r *RepositoryImpl) CreateTeam(ctx context.Context, team *models.Team) error {
+func (r *RepositoryImpl) CreateTeam(ctx context.Context, team *Team) error {
 	if err := r.db.WithContext(ctx).Create(&team).Error; err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
@@ -65,10 +65,10 @@ func (r *RepositoryImpl) CreateTeam(ctx context.Context, team *models.Team) erro
 	return nil
 }
 
-func (r *RepositoryImpl) DeleteTeam(ctx context.Context, team *models.Team) error {
+func (r *RepositoryImpl) DeleteTeam(ctx context.Context, team *Team) error {
 	result := r.db.WithContext(ctx).
-		Where(models.Team{ID: team.ID}).
-		Model(&models.Team{}).
+		Where(Team{ID: team.ID}).
+		Model(&Team{}).
 		Delete(team)
 	if result.Error != nil {
 		return result.Error
@@ -81,10 +81,10 @@ func (r *RepositoryImpl) DeleteTeam(ctx context.Context, team *models.Team) erro
 	return nil
 }
 
-func (r *RepositoryImpl) UpdateTeam(ctx context.Context, team *models.Team) error {
+func (r *RepositoryImpl) UpdateTeam(ctx context.Context, team *Team) error {
 	result := r.db.WithContext(ctx).
-		Where(models.Team{ID: team.ID}).
-		Model(&models.Team{}).
+		Where(Team{ID: team.ID}).
+		Model(&Team{}).
 		Updates(team)
 	if result.Error != nil {
 		return result.Error

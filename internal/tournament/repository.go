@@ -1,8 +1,8 @@
+//go:generate mockgen --source=repository.go -destination=repository_mock.go -package=tournament
 package tournament
 
 import (
 	"context"
-	"foosball/internal/models"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -18,10 +18,10 @@ var (
 )
 
 type Repository interface {
-	GetTournamen(ctx context.Context, id uint) (*models.Tournament, error)
-	CreateTournament(ctx context.Context, tournament *models.Tournament) error
-	DeleteTournament(ctx context.Context, tournament *models.Tournament) error
-	UpdateTournament(ctx context.Context, tournament *models.Tournament) error
+	GetTournamen(ctx context.Context, id uint) (*Tournament, error)
+	CreateTournament(ctx context.Context, tournament *Tournament) error
+	UpdateTournament(ctx context.Context, tournament *Tournament) error
+	DeleteTournament(ctx context.Context, tournament *Tournament) error
 }
 
 type RepositoryImpl struct {
@@ -34,21 +34,21 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-func (*RepositoryImpl) CreateTournament(ctx context.Context, tournament *models.Tournament) error {
+func (*RepositoryImpl) CreateTournament(ctx context.Context, tournament *Tournament) error {
 	// TODO
 	panic("unimplemented")
 }
 
-func (*RepositoryImpl) DeleteTournament(ctx context.Context, tournament *models.Tournament) error {
+func (*RepositoryImpl) DeleteTournament(ctx context.Context, tournament *Tournament) error {
 	// TODO
 	panic("unimplemented")
 }
 
-func (*RepositoryImpl) GetTournamen(ctx context.Context, id uint) (*models.Tournament, error) {
+func (*RepositoryImpl) GetTournamen(ctx context.Context, id uint) (*Tournament, error) {
 	// TODO
 	panic("unimplemented")
 }
-func (*RepositoryImpl) UpdateTournament(ctx context.Context, tournament *models.Tournament) error {
+func (*RepositoryImpl) UpdateTournament(ctx context.Context, tournament *Tournament) error {
 	// TODO
 	panic("unimplemented")
 }

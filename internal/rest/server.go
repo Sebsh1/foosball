@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"foosball/internal/authentication"
 	"foosball/internal/match"
 	"foosball/internal/player"
 	"foosball/internal/rating"
@@ -29,6 +30,7 @@ type Server struct {
 func NewServer(
 	conf Config,
 	logger *logrus.Logger,
+	authService authentication.Service,
 	playerService player.Service,
 	matchService match.Service,
 	ratingService rating.Service,
@@ -57,6 +59,7 @@ func NewServer(
 	controllers.Register(
 		root,
 		logger.WithField("module", "rest"),
+		authService,
 		playerService,
 		matchService,
 		ratingService,

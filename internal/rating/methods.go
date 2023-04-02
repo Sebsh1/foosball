@@ -1,7 +1,7 @@
 package rating
 
 import (
-	"foosball/internal/models"
+	"foosball/internal/team"
 	"math"
 )
 
@@ -10,21 +10,21 @@ var (
 	scaleFactor = 400.0
 )
 
-func (s *ServiceImpl) calculateRatingChangesElo(teamA, teamB *models.Team, winner Team) (newRatingsTeamA, newRatingsTeamB []int) {
-	ratingA := s.getAverageRating(teamA)
-	ratingB := s.getAverageRating(teamB)
+func (s *ServiceImpl) calculateRatingChangesElo(winners, losers *team.Team) ([]int, []int) {
+	ratingA := s.getAverageRating(winners)
+	ratingB := s.getAverageRating(losers)
 
-	return s.getNewRatings(ratingA, ratingB, teamA, teamB, winner)
+	return s.getNewRatings(ratingA, ratingB, winners, losers)
 }
 
-func (s *ServiceImpl) calculateRatingChangesRMS(teamA, teamB *models.Team, winner Team) (teamAChange, teamBChange []int) {
-	ratingA := s.getRMSRating(teamA)
-	ratingB := s.getRMSRating(teamB)
+func (s *ServiceImpl) calculateRatingChangesRMS(winners, losers *team.Team) ([]int, []int) {
+	ratingA := s.getRMSRating(winners)
+	ratingB := s.getRMSRating(losers)
 
-	return s.getNewRatings(ratingA, ratingB, teamA, teamB, winner)
+	return s.getNewRatings(ratingA, ratingB, winners, losers)
 }
 
-func (s *ServiceImpl) getAverageRating(team *models.Team) float64 {
+func (s *ServiceImpl) getAverageRating(team *team.Team) float64 {
 	sum := 0.0
 	for _, p := range team.Players {
 		sum += float64(p.Rating)
@@ -33,7 +33,7 @@ func (s *ServiceImpl) getAverageRating(team *models.Team) float64 {
 	return sum / float64(len(team.Players))
 }
 
-func (s *ServiceImpl) getRMSRating(team *models.Team) float64 {
+func (s *ServiceImpl) getRMSRating(team *team.Team) float64 {
 	n := 15.0
 	sum := 0.0
 	for _, p := range team.Players {
@@ -44,24 +44,18 @@ func (s *ServiceImpl) getRMSRating(team *models.Team) float64 {
 	return rating
 }
 
-func (s *ServiceImpl) getNewRatings(teamARating, teamBRating float64, teamA, teamB *models.Team, winner Team) (newRatingsTeamA, newRatingsTeamB []int) {
-	teamAWinner := 0.0
-	if winner == TeamA {
-		teamAWinner = 1.0
+func (s *ServiceImpl) getNewRatings(winnersRating, losersRating float64, winners, losers *team.Team) ([]int, []int) {
+	newRatingWinners := make([]int, len(winners.Players))
+	probabilityWinA := 1 / (1 + math.Pow(10, (winnersRating-losersRating)/scaleFactor))
+	for i, p := range winners.Players {
+		newRatingWinners[i] = p.Rating + int(kFactor*(1-probabilityWinA))
 	}
 
-	probabilityWinA := 1 / (1 + math.Pow(10, (teamARating-teamBRating)/scaleFactor))
-	probabilityWinB := 1 / (1 + math.Pow(10, (teamBRating-teamARating)/scaleFactor))
-
-	newRatingA := make([]int, len(teamA.Players))
-	for i, p := range teamA.Players {
-		newRatingA[i] = p.Rating + int(kFactor*(teamAWinner-probabilityWinA))
+	newRatingLosers := make([]int, len(losers.Players))
+	probabilityWinB := 1 / (1 + math.Pow(10, (losersRating-winnersRating)/scaleFactor))
+	for i, p := range losers.Players {
+		newRatingLosers[i] = p.Rating + int(kFactor*(-probabilityWinB))
 	}
 
-	newRatingB := make([]int, len(teamB.Players))
-	for i, p := range teamB.Players {
-		newRatingB[i] = p.Rating + int(kFactor*(1-teamAWinner-probabilityWinB))
-	}
-
-	return newRatingA, newRatingB
+	return newRatingWinners, newRatingLosers
 }

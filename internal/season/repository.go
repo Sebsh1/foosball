@@ -1,8 +1,8 @@
+//go:generate mockgen --source=repository.go -destination=repository_mock.go -package=season
 package season
 
 import (
 	"context"
-	"foosball/internal/models"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
@@ -19,10 +19,10 @@ var (
 )
 
 type Repository interface {
-	GetSeason(ctx context.Context, id uint) (*models.Season, error)
-	CreateSeason(ctx context.Context, season *models.Season) error
-	DeleteSeason(ctx context.Context, season *models.Season) error
-	UpdateSeason(ctx context.Context, season *models.Season) error
+	GetSeason(ctx context.Context, id uint) (*Season, error)
+	CreateSeason(ctx context.Context, season *Season) error
+	UpdateSeason(ctx context.Context, season *Season) error
+	DeleteSeason(ctx context.Context, season *Season) error
 }
 
 type RepositoryImpl struct {
@@ -35,11 +35,11 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-func (r *RepositoryImpl) GetSeason(ctx context.Context, id uint) (*models.Season, error) {
-	var season models.Season
+func (r *RepositoryImpl) GetSeason(ctx context.Context, id uint) (*Season, error) {
+	var season Season
 
 	result := r.db.WithContext(ctx).
-		Where(models.Season{ID: id}).
+		Where(Season{ID: id}).
 		First(&season)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -52,7 +52,7 @@ func (r *RepositoryImpl) GetSeason(ctx context.Context, id uint) (*models.Season
 	return &season, nil
 }
 
-func (r *RepositoryImpl) CreateSeason(ctx context.Context, season *models.Season) error {
+func (r *RepositoryImpl) CreateSeason(ctx context.Context, season *Season) error {
 	if err := r.db.WithContext(ctx).Create(&season).Error; err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
@@ -65,10 +65,10 @@ func (r *RepositoryImpl) CreateSeason(ctx context.Context, season *models.Season
 	return nil
 }
 
-func (r *RepositoryImpl) DeleteSeason(ctx context.Context, season *models.Season) error {
+func (r *RepositoryImpl) DeleteSeason(ctx context.Context, season *Season) error {
 	result := r.db.WithContext(ctx).
-		Where(models.Season{ID: season.ID}).
-		Model(&models.Season{}).
+		Where(Season{ID: season.ID}).
+		Model(&Season{}).
 		Delete(season)
 	if result.Error != nil {
 		return result.Error
@@ -81,10 +81,10 @@ func (r *RepositoryImpl) DeleteSeason(ctx context.Context, season *models.Season
 	return nil
 }
 
-func (r *RepositoryImpl) UpdateSeason(ctx context.Context, season *models.Season) error {
+func (r *RepositoryImpl) UpdateSeason(ctx context.Context, season *Season) error {
 	result := r.db.WithContext(ctx).
-		Where(models.Season{ID: season.ID}).
-		Model(&models.Season{}).
+		Where(Season{ID: season.ID}).
+		Model(&Season{}).
 		Updates(season)
 	if result.Error != nil {
 		return result.Error

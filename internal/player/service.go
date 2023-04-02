@@ -1,19 +1,19 @@
+//go:generate mockgen --source=service.go -destination=service_mock.go -package=player
 package player
 
 import (
 	"context"
-	"foosball/internal/models"
 
 	"github.com/pkg/errors"
 )
 
 type Service interface {
-	GetPlayer(ctx context.Context, id uint) (*models.Player, error)
-	GetPlayers(ctx context.Context, ids []uint) ([]*models.Player, error)
+	GetPlayer(ctx context.Context, id uint) (*Player, error)
+	GetPlayers(ctx context.Context, ids []uint) ([]*Player, error)
+	GetTopPlayersByRating(ctx context.Context, top int) ([]*Player, error)
 	CreatePlayer(ctx context.Context, name string) error
+	UpdatePlayers(ctx context.Context, players []*Player, ratingChange []int) error
 	DeletePlayer(ctx context.Context, id uint) error
-	UpdatePlayers(ctx context.Context, players []*models.Player, ratings []int) error
-	GetTopPlayersByRating(ctx context.Context, top int) ([]*models.Player, error)
 }
 
 type ServiceImpl struct {
@@ -26,7 +26,7 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) GetPlayer(ctx context.Context, id uint) (*models.Player, error) {
+func (s *ServiceImpl) GetPlayer(ctx context.Context, id uint) (*Player, error) {
 	player, err := s.repo.GetPlayer(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -38,7 +38,7 @@ func (s *ServiceImpl) GetPlayer(ctx context.Context, id uint) (*models.Player, e
 	return player, nil
 }
 
-func (s *ServiceImpl) GetPlayers(ctx context.Context, ids []uint) ([]*models.Player, error) {
+func (s *ServiceImpl) GetPlayers(ctx context.Context, ids []uint) ([]*Player, error) {
 	players, err := s.repo.GetPlayers(ctx, ids)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -51,13 +51,16 @@ func (s *ServiceImpl) GetPlayers(ctx context.Context, ids []uint) ([]*models.Pla
 }
 
 func (s *ServiceImpl) CreatePlayer(ctx context.Context, name string) error {
-	player := &models.Player{
+	player := &Player{
 		Name:   name,
 		Rating: 1000,
 	}
 
 	err := s.repo.CreatePlayer(ctx, player)
 	if err != nil {
+		if errors.Is(err, ErrDuplicateEntry) {
+			return err
+		}
 		return errors.Wrap(err, "failed to create player")
 	}
 
@@ -78,9 +81,9 @@ func (s *ServiceImpl) DeletePlayer(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *ServiceImpl) UpdatePlayers(ctx context.Context, players []*models.Player, ratings []int) error {
+func (s *ServiceImpl) UpdatePlayers(ctx context.Context, players []*Player, ratingChange []int) error {
 	for i, p := range players {
-		p.Rating += ratings[i]
+		p.Rating += ratingChange[i]
 	}
 
 	err := s.repo.UpdatePlayers(ctx, players)
@@ -91,10 +94,10 @@ func (s *ServiceImpl) UpdatePlayers(ctx context.Context, players []*models.Playe
 	return nil
 }
 
-func (s *ServiceImpl) GetTopPlayersByRating(ctx context.Context, top int) ([]*models.Player, error) {
+func (s *ServiceImpl) GetTopPlayersByRating(ctx context.Context, top int) ([]*Player, error) {
 	players, err := s.repo.GetTopPlayersByRating(ctx, top)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get players")
+		return nil, errors.Wrap(err, "failed to get top players by rating")
 	}
 
 	return players, nil

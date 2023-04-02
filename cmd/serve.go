@@ -2,13 +2,15 @@ package cmd
 
 import (
 	"context"
+	"foosball/internal/authentication"
 	"foosball/internal/match"
-	"foosball/internal/models"
 	"foosball/internal/mysql"
 	"foosball/internal/player"
 	"foosball/internal/rating"
 	"foosball/internal/rest"
+	"foosball/internal/season"
 	"foosball/internal/team"
+	"foosball/internal/tournament"
 	"os"
 	"os/signal"
 	"syscall"
@@ -43,14 +45,18 @@ func serve(cmd *cobra.Command, args []string) {
 	}
 
 	if err := db.AutoMigrate(
-		&models.Player{},
-		&models.Match{},
-		&models.Team{},
-		&models.Season{},
-		&models.Tournament{},
+		&authentication.User{},
+		&player.Player{},
+		&team.Team{},
+		&tournament.Tournament{},
+		&season.Season{},
+		&match.Match{},
 	); err != nil {
 		log.WithError(err).Fatal("failed to auto migrate database")
 	}
+
+	authRepo := authentication.NewRepository(db)
+	authService := authentication.NewService(config.Auth, authRepo)
 
 	playerRepo := player.NewRepository(db)
 	playerService := player.NewService(playerRepo)
@@ -66,6 +72,7 @@ func serve(cmd *cobra.Command, args []string) {
 	httpServer, err := rest.NewServer(
 		config.Rest,
 		log,
+		authService,
 		playerService,
 		matchService,
 		ratingService,

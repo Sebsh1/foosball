@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"foosball/internal/models"
 	"foosball/internal/rest/helpers"
+	"foosball/internal/team"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -13,10 +13,12 @@ type getMatchRequest struct {
 }
 
 type getMatchResponse struct {
-	TeamA  models.Team `json:"teamA" validate:"required"`
-	TeamB  models.Team `json:"teamB" validate:"required"`
-	GoalsA int         `json:"goalsA" validate:"required,numeric,gte=0,lte=10"`
-	GoalsB int         `json:"goalsB" validate:"required,numeric,gte=0,lte=10"`
+	SeasonID     uint `json:"seasonID,omitempty"`
+	TournamentID uint `json:"tournamentID,omitempty"`
+	TeamAID      uint `json:"teamAID" validate:"required"`
+	TeamBID      uint `json:"teamBID" validate:"required"`
+	GoalsA       int  `json:"goalsA" validate:"required,numeric,gte=0,lte=10"`
+	GoalsB       int  `json:"goalsB" validate:"required,numeric,gte=0,lte=10"`
 }
 
 func (h *Handlers) GetMatch(c echo.Context) error {
@@ -35,28 +37,33 @@ func (h *Handlers) GetMatch(c echo.Context) error {
 	}
 
 	resp := getMatchResponse{
-		TeamA:  match.TeamA,
-		TeamB:  match.TeamA,
-		GoalsA: match.GoalsA,
-		GoalsB: match.GoalsB,
+		SeasonID:     match.SeasonID,
+		TournamentID: match.TournamentID,
+		TeamAID:      match.TeamAID,
+		TeamBID:      match.TeamBID,
+		GoalsA:       match.GoalsA,
+		GoalsB:       match.GoalsB,
 	}
+
 	return c.JSON(http.StatusOK, resp)
 }
 
 type postMatchRequest struct {
-	TeamA  uint   `json:"teamA" validate:"required"`
-	TeamB  uint   `json:"teamB" validate:"required"`
-	GoalsA int    `json:"goalsA" validate:"required,numeric,min=0,max=10"`
-	GoalsB int    `json:"goalsB" validate:"required,numeric,min=0,max=10"`
-	Winner string `json:"winner" validate:"required,ascii,oneof=A B"`
+	SeasonID     uint `json:"seasonId"`
+	TournamentID uint `json:"tournamentId"`
+	TeamAID      uint `json:"teamAId" validate:"required"`
+	TeamBID      uint `json:"teamBId" validate:"required"`
+	GoalsA       int  `json:"goalsA" validate:"required,numeric,min=0,max=10"`
+	GoalsB       int  `json:"goalsB" validate:"required,numeric,min=0,max=10"`
 }
 
 type postMatchResponse struct {
-	TeamA  uint   `json:"teamA" validate:"required"`
-	TeamB  uint   `json:"teamB" validate:"required"`
-	GoalsA int    `json:"goalsA" validate:"required,numeric,min=0,max=10"`
-	GoalsB int    `json:"goalsB" validate:"required,numeric,min=0,max=10"`
-	Winner string `json:"winner" validate:"required,ascii,oneof=A B"`
+	SeasonID     uint `json:"seasonId"`
+	TournamentID uint `json:"tournamentId"`
+	TeamAID      uint `json:"teamAId" validate:"required"`
+	TeamBID      uint `json:"teamBId" validate:"required"`
+	GoalsA       int  `json:"goalsA" validate:"required,numeric,min=0,max=10"`
+	GoalsB       int  `json:"goalsB" validate:"required,numeric,min=0,max=10"`
 }
 
 func (h *Handlers) PostMatch(c echo.Context) error {
@@ -67,34 +74,46 @@ func (h *Handlers) PostMatch(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	teamA, err := h.teamService.GetTeam(ctx, req.TeamA)
+	if req.TeamAID == req.TeamBID || req.GoalsA == req.GoalsB {
+		return echo.ErrBadRequest
+	}
+
+	teamA, err := h.teamService.GetTeam(ctx, req.TeamAID)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get team A")
 		return echo.ErrInternalServerError
 	}
-	teamB, err := h.teamService.GetTeam(ctx, req.TeamB)
+	teamB, err := h.teamService.GetTeam(ctx, req.TeamBID)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get team B")
 		return echo.ErrInternalServerError
 	}
 
-	err = h.matchService.CreateMatch(ctx, *teamA, *teamB, req.GoalsA, req.GoalsB)
+	err = h.matchService.CreateMatch(ctx, teamA.ID, teamB.ID, req.GoalsA, req.GoalsB)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to create match")
 		return echo.ErrInternalServerError
 	}
 
+	var winner, loser *team.Team
+	if req.GoalsA > req.GoalsB {
+		winner = teamA
+		loser = teamB
+	} else {
+		winner = teamB
+		loser = teamA
+	}
+
+	if err := h.ratingService.UpdateRatings(ctx, winner, loser); err != nil {
+		h.logger.WithError(err).Error("failed to update ratings")
+		return echo.ErrInternalServerError
+	}
+
 	resp := postMatchResponse{
-		TeamA:  req.TeamA,
-		TeamB:  req.TeamB,
-		GoalsA: req.GoalsA,
-		GoalsB: req.GoalsB,
-		Winner: req.Winner,
+		TeamAID: req.TeamAID,
+		TeamBID: req.TeamBID,
+		GoalsA:  req.GoalsA,
+		GoalsB:  req.GoalsB,
 	}
 	return c.JSON(http.StatusCreated, resp)
-}
-
-func (h *Handlers) GetMatchesWithPlayer(c echo.Context) error {
-	// TODO implement
-	return c.JSON(http.StatusNotImplemented, nil)
 }

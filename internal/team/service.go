@@ -1,17 +1,18 @@
+//go:generate mockgen --source=service.go -destination=service_mock.go -package=team
 package team
 
 import (
 	"context"
-	"foosball/internal/models"
+	"foosball/internal/player"
 
 	"github.com/pkg/errors"
 )
 
 type Service interface {
-	GetTeam(ctx context.Context, id uint) (*models.Team, error)
-	CreateTeam(ctx context.Context, players []*models.Player) error
+	GetTeam(ctx context.Context, id uint) (*Team, error)
+	CreateTeam(ctx context.Context, players []*player.Player) error
+	UpdateTeam(ctx context.Context, team *Team) error
 	DeleteTeam(ctx context.Context, id uint) error
-	UpdateTeam(ctx context.Context, team *models.Team) error
 }
 
 type ServiceImpl struct {
@@ -24,7 +25,7 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) GetTeam(ctx context.Context, id uint) (*models.Team, error) {
+func (s *ServiceImpl) GetTeam(ctx context.Context, id uint) (*Team, error) {
 	player, err := s.repo.GetTeam(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -36,12 +37,15 @@ func (s *ServiceImpl) GetTeam(ctx context.Context, id uint) (*models.Team, error
 	return player, nil
 }
 
-func (s *ServiceImpl) CreateTeam(ctx context.Context, players []*models.Player) error {
-	team := &models.Team{
+func (s *ServiceImpl) CreateTeam(ctx context.Context, players []*player.Player) error {
+	team := &Team{
 		Players: players,
 	}
 	err := s.repo.CreateTeam(ctx, team)
 	if err != nil {
+		if errors.Is(err, ErrDuplicateEntry) {
+			return err
+		}
 		return errors.Wrap(err, "failed to create team")
 	}
 
@@ -62,7 +66,7 @@ func (s *ServiceImpl) DeleteTeam(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *ServiceImpl) UpdateTeam(ctx context.Context, team *models.Team) error {
+func (s *ServiceImpl) UpdateTeam(ctx context.Context, team *Team) error {
 	err := s.repo.UpdateTeam(ctx, team)
 	if err != nil {
 		return errors.Wrap(err, "failed to update team")

@@ -1,15 +1,16 @@
+//go:generate mockgen --source=service.go -destination=service_mock.go -package=tournament
 package tournament
 
 import (
 	"context"
-	"foosball/internal/models"
+	"foosball/internal/team"
 )
 
 type Service interface {
-	GetTournament(ctx context.Context, id uint) (*models.Tournament, error)
-	CreateTournament(ctx context.Context, teams []*models.Team) error
+	GetTournament(ctx context.Context, id uint) (*Tournament, error)
+	CreateTournament(ctx context.Context, teams []*team.Team) error
+	UpdateTournament(ctx context.Context, tournament *Tournament) error
 	DeleteTournament(ctx context.Context, id uint) error
-	UpdateTournament(ctx context.Context, tournament *models.Tournament) error
 }
 
 type ServiceImpl struct {
@@ -22,7 +23,7 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (*ServiceImpl) CreateTournament(ctx context.Context, teams []*models.Team) error {
+func (*ServiceImpl) CreateTournament(ctx context.Context, teams []*team.Team) error {
 	// TODO
 	panic("unimplemented")
 }
@@ -32,12 +33,12 @@ func (*ServiceImpl) DeleteTournament(ctx context.Context, id uint) error {
 	panic("unimplemented")
 }
 
-func (*ServiceImpl) GetTournament(ctx context.Context, id uint) (*models.Tournament, error) {
+func (*ServiceImpl) GetTournament(ctx context.Context, id uint) (*Tournament, error) {
 	// TODO
 	panic("unimplemented")
 }
 
-func (*ServiceImpl) UpdateTournament(ctx context.Context, tournament *models.Tournament) error {
+func (*ServiceImpl) UpdateTournament(ctx context.Context, tournament *Tournament) error {
 	// TODO
 	panic("unimplemented")
 }
