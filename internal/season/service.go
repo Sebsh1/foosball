@@ -14,6 +14,7 @@ type Config struct {
 
 type Service interface {
 	GetSeason(ctx context.Context, id uint) (*Season, error)
+	GetCurrentSeasonID(ctx context.Context) (uint, error)
 	CreateSeason(ctx context.Context, name *string, start time.Time) error
 	UpdateSeason(ctx context.Context, season *Season) error
 	DeleteSeason(ctx context.Context, id uint) error
@@ -41,6 +42,15 @@ func (s *ServiceImpl) GetSeason(ctx context.Context, id uint) (*Season, error) {
 	}
 
 	return player, nil
+}
+
+func (s *ServiceImpl) GetCurrentSeasonID(ctx context.Context) (uint, error) {
+	id, err := s.repo.GetCurrentSeasonID(ctx)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get current season")
+	}
+
+	return id, nil
 }
 
 func (s *ServiceImpl) CreateSeason(ctx context.Context, name *string, start time.Time) error {

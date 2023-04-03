@@ -15,7 +15,7 @@ var (
 	ErrDuplicateEntry = errors.New("already exists")
 	ErrNotFound       = errors.New("not found")
 	ErrNotUpdated     = errors.New("not updated")
-	ErrNotDeleted     = errors.New("not deleted")
+	ErrNoneDeleted    = errors.New("none deleted")
 )
 
 type Repository interface {
@@ -91,7 +91,7 @@ func (r *RepositoryImpl) DeletePlayer(ctx context.Context, id uint) error {
 	}
 
 	if result.RowsAffected == 0 {
-		return ErrNotDeleted
+		return ErrNoneDeleted
 	}
 
 	return nil
@@ -129,14 +129,11 @@ func (r *RepositoryImpl) GetTopPlayersByRating(ctx context.Context, top int) ([]
 	var players []*Player
 
 	result := r.db.WithContext(ctx).
-		Select(&players).
 		Order("rating DESC").
-		Limit(top)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
-		}
+		Limit(top).
+		Find(&players)
 
+	if result.Error != nil {
 		return nil, result.Error
 	}
 

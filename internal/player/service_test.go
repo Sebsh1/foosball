@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetPlayer_ShouldSucceed(t *testing.T) {
+func Test_Service_GetPlayer_ShouldSucceed(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -30,7 +30,7 @@ func Test_GetPlayer_ShouldSucceed(t *testing.T) {
 	assert.Equal(t, p, player)
 }
 
-func Test_GetPlayer_ShouldFail_NotFound(t *testing.T) {
+func Test_Service_GetPlayer_ShouldFail_NotFound(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -47,7 +47,7 @@ func Test_GetPlayer_ShouldFail_NotFound(t *testing.T) {
 	assert.Nil(t, player)
 }
 
-func Test_GetPlayer_ShouldFail(t *testing.T) {
+func Test_Service_GetPlayer_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -67,7 +67,7 @@ func Test_GetPlayer_ShouldFail(t *testing.T) {
 	assert.Nil(t, player)
 }
 
-func Test_GetPlayers_ShouldSucceed(t *testing.T) {
+func Test_Service_GetPlayers_ShouldSucceed(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -98,7 +98,7 @@ func Test_GetPlayers_ShouldSucceed(t *testing.T) {
 	assert.Equal(t, testPlayers, players)
 }
 
-func Test_GetPlayers_ShouldFail(t *testing.T) {
+func Test_Service_GetPlayers_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -116,7 +116,7 @@ func Test_GetPlayers_ShouldFail(t *testing.T) {
 	assert.Nil(t, players)
 }
 
-func Test_GetPlayers_ShouldFail_NotFound(t *testing.T) {
+func Test_Service_GetPlayers_ShouldFail_NotFound(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -133,7 +133,7 @@ func Test_GetPlayers_ShouldFail_NotFound(t *testing.T) {
 	assert.Nil(t, players)
 }
 
-func Test_GetTopPlayersByRating_ShouldSucced(t *testing.T) {
+func Test_Service_GetTopPlayersByRating_ShouldSucced(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -163,7 +163,7 @@ func Test_GetTopPlayersByRating_ShouldSucced(t *testing.T) {
 	assert.Equal(t, testPlayers, players)
 }
 
-func Test_GetTopPlayersByRating_ShouldFail(t *testing.T) {
+func Test_Service_GetTopPlayersByRating_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -180,7 +180,7 @@ func Test_GetTopPlayersByRating_ShouldFail(t *testing.T) {
 	assert.Nil(t, players)
 }
 
-func Test_CreatePlayer_ShouldSucceed(t *testing.T) {
+func Test_Service_CreatePlayer_ShouldSucceed(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -200,7 +200,7 @@ func Test_CreatePlayer_ShouldSucceed(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_CreatePlayer_ShouldFail(t *testing.T) {
+func Test_Service_CreatePlayer_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -222,7 +222,7 @@ func Test_CreatePlayer_ShouldFail(t *testing.T) {
 	assert.ErrorIs(t, err, errTest)
 }
 
-func Test_DeletePlayer_ShouldSucceed(t *testing.T) {
+func Test_Service_DeletePlayer_ShouldSucceed(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -237,7 +237,7 @@ func Test_DeletePlayer_ShouldSucceed(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_DeletePlayer_ShouldFail(t *testing.T) {
+func Test_Service_DeletePlayer_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -254,7 +254,7 @@ func Test_DeletePlayer_ShouldFail(t *testing.T) {
 	assert.ErrorIs(t, err, errTest)
 }
 
-func Test_UpdatePlayers_ShouldSucceed(t *testing.T) {
+func Test_Service_UpdatePlayers_ShouldSucceed(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))
@@ -282,7 +282,7 @@ func Test_UpdatePlayers_ShouldSucceed(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_UpdatePlayers_Shouldfail(t *testing.T) {
+func Test_Service_UpdatePlayers_Shouldfail(t *testing.T) {
 	t.Parallel()
 
 	repo := NewMockRepository(gomock.NewController(t))

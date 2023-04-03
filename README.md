@@ -12,3 +12,9 @@ All you have to do is deploy it, play foosball and log the results.
 run <code>go run main.go serve</code> to start the service with the config defined in <code>config.yaml</code>.
 
 ### API Docs
+
+### TODO
+- DELETE player/:id needs to remove player from table players_teams
+- GET player/:id/stats needs to be implemented
+- POST match fails to update player ratings
+- Authguard on endpoints?

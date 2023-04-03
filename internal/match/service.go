@@ -3,6 +3,7 @@ package match
 import (
 	"context"
 	"foosball/internal/player"
+	"foosball/internal/season"
 
 	"github.com/pkg/errors"
 )
@@ -21,25 +22,32 @@ type Service interface {
 type ServiceImpl struct {
 	repo          Repository
 	playerService player.Service
+	seasonService season.Service
 }
 
-func NewService(repo Repository, playerService player.Service) Service {
+func NewService(repo Repository, playerService player.Service, seasonService season.Service) Service {
 	return &ServiceImpl{
 		repo:          repo,
 		playerService: playerService,
+		seasonService: seasonService,
 	}
 }
 
 func (s *ServiceImpl) CreateMatch(ctx context.Context, teamAID, teamBID uint, goalsA, goalsB int) error {
-	match := &Match{
-		TeamAID: teamAID,
-		TeamBID: teamBID,
-		GoalsA:  goalsA,
-		GoalsB:  goalsB,
+	seasonID, err := s.seasonService.GetCurrentSeasonID(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to get current season id")
 	}
 
-	err := s.repo.CreateMatch(ctx, match)
-	if err != nil {
+	match := &Match{
+		SeasonID: seasonID,
+		TeamAID:  teamAID,
+		TeamBID:  teamBID,
+		GoalsA:   goalsA,
+		GoalsB:   goalsB,
+	}
+
+	if err = s.repo.CreateMatch(ctx, match); err != nil {
 		if err == ErrDuplicateEntry {
 			return err
 		}

@@ -10,7 +10,6 @@ import (
 	"foosball/internal/rest"
 	"foosball/internal/season"
 	"foosball/internal/team"
-	"foosball/internal/tournament"
 	"os"
 	"os/signal"
 	"syscall"
@@ -48,7 +47,6 @@ func serve(cmd *cobra.Command, args []string) {
 		&authentication.User{},
 		&player.Player{},
 		&team.Team{},
-		&tournament.Tournament{},
 		&season.Season{},
 		&match.Match{},
 	); err != nil {
@@ -61,13 +59,16 @@ func serve(cmd *cobra.Command, args []string) {
 	playerRepo := player.NewRepository(db)
 	playerService := player.NewService(playerRepo)
 
-	matchRepo := match.NewRepository(db)
-	matchService := match.NewService(matchRepo, playerService)
-
 	ratingService := rating.NewService(config.Rating, playerService)
 
 	teamRepo := team.NewRepository(db)
 	teamService := team.NewService(teamRepo)
+
+	seasonRepo := season.NewRepository(db)
+	seasonService := season.NewService(config.Season, seasonRepo)
+
+	matchRepo := match.NewRepository(db)
+	matchService := match.NewService(matchRepo, playerService, seasonService)
 
 	httpServer, err := rest.NewServer(
 		config.Rest,

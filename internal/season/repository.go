@@ -20,6 +20,7 @@ var (
 
 type Repository interface {
 	GetSeason(ctx context.Context, id uint) (*Season, error)
+	GetCurrentSeasonID(ctx context.Context) (uint, error)
 	CreateSeason(ctx context.Context, season *Season) error
 	UpdateSeason(ctx context.Context, season *Season) error
 	DeleteSeason(ctx context.Context, season *Season) error
@@ -50,6 +51,24 @@ func (r *RepositoryImpl) GetSeason(ctx context.Context, id uint) (*Season, error
 	}
 
 	return &season, nil
+}
+
+func (r *RepositoryImpl) GetCurrentSeasonID(ctx context.Context) (uint, error) {
+	var season Season
+
+	result := r.db.WithContext(ctx).
+		Where("start <= NOW() AND end >= NOW()").
+		Order("start DESC").
+		First(&season)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return 0, ErrNotFound
+		}
+
+		return 0, result.Error
+	}
+
+	return season.ID, nil
 }
 
 func (r *RepositoryImpl) CreateSeason(ctx context.Context, season *Season) error {
