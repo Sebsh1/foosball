@@ -17,4 +17,4 @@ rating:
   method: elo
 
 season:
-  length: 2160h # 90 days
+  length: 8760h # 365 days
