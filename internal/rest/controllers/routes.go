@@ -56,11 +56,6 @@ func Register(
 	e.POST("/season", h.CreateSeason)
 	e.DELETE("/season/:id", h.DeleteSeason)
 
-	// Tournaments
-	e.GET("/tournament/:id", h.GetTournament)
-	e.POST("/tournament", h.CreateTournament)
-	e.DELETE("/tournament/:id", h.DeleteTournament)
-
 	// Leaderboards
 	e.GET("/leaderboard/rating", h.GetLeaderboardRating)
 }

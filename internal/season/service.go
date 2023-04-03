@@ -14,7 +14,7 @@ type Config struct {
 
 type Service interface {
 	GetSeason(ctx context.Context, id uint) (*Season, error)
-	CreateSeason(ctx context.Context, start time.Time, name *string) error
+	CreateSeason(ctx context.Context, name *string, start time.Time) error
 	UpdateSeason(ctx context.Context, season *Season) error
 	DeleteSeason(ctx context.Context, id uint) error
 }
@@ -43,7 +43,7 @@ func (s *ServiceImpl) GetSeason(ctx context.Context, id uint) (*Season, error) {
 	return player, nil
 }
 
-func (s *ServiceImpl) CreateSeason(ctx context.Context, start time.Time, name *string) error {
+func (s *ServiceImpl) CreateSeason(ctx context.Context, name *string, start time.Time) error {
 	season := &Season{
 		Start: start,
 		End:   start.Add(s.config.Length),

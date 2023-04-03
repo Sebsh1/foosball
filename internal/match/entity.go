@@ -5,9 +5,8 @@ import (
 )
 
 type Match struct {
-	ID           uint `gorm:"primaryKey"`
-	SeasonID     uint `gorm:"index"`
-	TournamentID uint `gorm:"index"`
+	ID       uint `gorm:"primaryKey"`
+	SeasonID uint `gorm:"index"`
 
 	TeamAID uint `gorm:"index;not null"`
 	TeamBID uint `gorm:"index;not null"`

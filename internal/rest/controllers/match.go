@@ -13,12 +13,11 @@ type getMatchRequest struct {
 }
 
 type getMatchResponse struct {
-	SeasonID     uint `json:"seasonID,omitempty"`
-	TournamentID uint `json:"tournamentID,omitempty"`
-	TeamAID      uint `json:"teamAID" validate:"required"`
-	TeamBID      uint `json:"teamBID" validate:"required"`
-	GoalsA       int  `json:"goalsA" validate:"required,numeric,gte=0,lte=10"`
-	GoalsB       int  `json:"goalsB" validate:"required,numeric,gte=0,lte=10"`
+	SeasonID uint `json:"seasonID,omitempty"`
+	TeamAID  uint `json:"teamAID" validate:"required"`
+	TeamBID  uint `json:"teamBID" validate:"required"`
+	GoalsA   int  `json:"goalsA" validate:"required,numeric,gte=0,lte=10"`
+	GoalsB   int  `json:"goalsB" validate:"required,numeric,gte=0,lte=10"`
 }
 
 func (h *Handlers) GetMatch(c echo.Context) error {
@@ -37,33 +36,30 @@ func (h *Handlers) GetMatch(c echo.Context) error {
 	}
 
 	resp := getMatchResponse{
-		SeasonID:     match.SeasonID,
-		TournamentID: match.TournamentID,
-		TeamAID:      match.TeamAID,
-		TeamBID:      match.TeamBID,
-		GoalsA:       match.GoalsA,
-		GoalsB:       match.GoalsB,
+		SeasonID: match.SeasonID,
+		TeamAID:  match.TeamAID,
+		TeamBID:  match.TeamBID,
+		GoalsA:   match.GoalsA,
+		GoalsB:   match.GoalsB,
 	}
 
 	return c.JSON(http.StatusOK, resp)
 }
 
 type postMatchRequest struct {
-	SeasonID     uint `json:"seasonId"`
-	TournamentID uint `json:"tournamentId"`
-	TeamAID      uint `json:"teamAId" validate:"required"`
-	TeamBID      uint `json:"teamBId" validate:"required"`
-	GoalsA       int  `json:"goalsA" validate:"required,numeric,min=0,max=10"`
-	GoalsB       int  `json:"goalsB" validate:"required,numeric,min=0,max=10"`
+	SeasonID uint `json:"seasonId"`
+	TeamAID  uint `json:"teamAId" validate:"required"`
+	TeamBID  uint `json:"teamBId" validate:"required"`
+	GoalsA   int  `json:"goalsA" validate:"required,numeric,min=0,max=10"`
+	GoalsB   int  `json:"goalsB" validate:"required,numeric,min=0,max=10"`
 }
 
 type postMatchResponse struct {
-	SeasonID     uint `json:"seasonId"`
-	TournamentID uint `json:"tournamentId"`
-	TeamAID      uint `json:"teamAId" validate:"required"`
-	TeamBID      uint `json:"teamBId" validate:"required"`
-	GoalsA       int  `json:"goalsA" validate:"required,numeric,min=0,max=10"`
-	GoalsB       int  `json:"goalsB" validate:"required,numeric,min=0,max=10"`
+	SeasonID uint `json:"seasonId"`
+	TeamAID  uint `json:"teamAId" validate:"required"`
+	TeamBID  uint `json:"teamBId" validate:"required"`
+	GoalsA   int  `json:"goalsA" validate:"required,numeric,min=0,max=10"`
+	GoalsB   int  `json:"goalsB" validate:"required,numeric,min=0,max=10"`
 }
 
 func (h *Handlers) PostMatch(c echo.Context) error {

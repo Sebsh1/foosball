@@ -21,8 +21,6 @@ tags:
     description: Endpoints for managing matches
   - name: season
     description: Endpoints for managing seasons
-  - name: tournament
-    description: Endpoints for managing tournaments
   - name: leaderboard
     description: Endpoints for managing leaderboards
 
