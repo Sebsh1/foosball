@@ -15,8 +15,9 @@ Run <code>go run main.go serve</code> to start the service with the config defin
 
 ### TODO
 - Authguard on endpoints
-- Better stats collection 
-- TopX lists of various stats
+- Stats collection (win/loss ratio, total matches, most common teammate, etc.)
+- TopX lists (rating, win/loss ratio, total matches)
+- Two new rating methods: Weighted Elo & Glicko2 
 - Organizing and managing tournaments  
 - API Docs
 - a frontend :)
