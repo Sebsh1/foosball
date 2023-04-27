@@ -15,6 +15,3 @@ db:
 
 rating:
   method: elo
-
-season:
-  length: 8760h # 365 days

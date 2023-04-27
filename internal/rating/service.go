@@ -3,62 +3,76 @@ package rating
 
 import (
 	"context"
-	"fmt"
-	"foosball/internal/player"
-	"foosball/internal/team"
+	"foosball/internal/user"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
-type Method int
+type Method string
 
 const (
-	Elo Method = iota
-	Weighted
-	RMS
+	Elo      Method = "elo"
+	Weighted Method = "weighted"
+	RMS      Method = "rms"
+	Glicko2  Method = "glicko2"
 )
 
-func (m Method) String() string {
-	return []string{"elo", "rms"}[m]
-}
-
 type Config struct {
-	Method string `mapstructure:"method" validate:"required" default:"elo"`
+	Method Method `mapstructure:"method" validate:"required" default:"elo"`
 }
 
 type Service interface {
-	UpdateRatings(ctx context.Context, winners, losers *team.Team) error
+	UpdateRatings(ctx context.Context, draw bool, winners, losers []uint) error
 }
 
 type ServiceImpl struct {
-	config        Config
-	playerService player.Service
+	config      Config
+	userService user.Service
 }
 
-func NewService(config Config, playerService player.Service) Service {
+func NewService(config Config, userService user.Service) Service {
 	return &ServiceImpl{
-		config:        config,
-		playerService: playerService,
+		config:      config,
+		userService: userService,
 	}
 }
 
-func (s *ServiceImpl) UpdateRatings(ctx context.Context, winners, losers *team.Team) error {
-	newRatingsWinners := make([]int, len(winners.Players))
-	newRatingsLosers := make([]int, len(losers.Players))
+func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winners, losers []uint) error {
+	if draw {
+		return nil // TODO implement draw in rating methods
+	}
+
+	winnerUsers, err := s.userService.GetUsers(ctx, winners)
+	if err != nil {
+		return errors.Wrap(err, "failed to get winner users")
+	}
+
+	loserUsers, err := s.userService.GetUsers(ctx, losers)
+	if err != nil {
+		return errors.Wrap(err, "failed to get loser users")
+	}
+
+	newRatingsWinners := make([]int, len(winners))
+	newRatingsLosers := make([]int, len(losers))
 
 	switch s.config.Method {
-	case Elo.String():
-		newRatingsWinners, newRatingsLosers = s.calculateRatingChangesElo(winners, losers)
-	case RMS.String():
-		newRatingsWinners, newRatingsLosers = s.calculateRatingChangesRMS(winners, losers)
+	case Elo:
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsElo(winnerUsers, loserUsers)
+	case Weighted:
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsWeighted(winnerUsers, loserUsers)
+	case RMS:
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsRMS(winnerUsers, loserUsers)
+	case Glicko2:
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsGlicko2(winnerUsers, loserUsers)
 	default:
-		return errors.New(fmt.Sprintf("unrecognized rating method: %s", s.config.Method))
+		logrus.WithField("method", s.config.Method).Error("unrecognized rating method, defaulting to elo")
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsElo(winnerUsers, loserUsers)
 	}
 
-	players := append(winners.Players, losers.Players...)
+	userIDs := append(winners, losers...)
 	ratings := append(newRatingsWinners, newRatingsLosers...)
-	err := s.playerService.UpdatePlayers(ctx, players, ratings)
-	if err != nil {
+	if err := s.userService.UpdateRatings(ctx, userIDs, ratings); err != nil {
 		return errors.Wrap(err, "failed to update ratings")
 	}
 

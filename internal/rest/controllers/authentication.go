@@ -7,16 +7,16 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type loginRequest struct {
-	Username string `json:"username" validate:"required,ascii"`
-	Password string `json:"password" validate:"required,ascii"`
-}
-
-type loginResponse struct {
-	JWT string `json:"jwt" validate:"required,ascii"`
-}
-
 func (h *Handlers) Login(c echo.Context) error {
+	type loginRequest struct {
+		Email    string `json:"email" validate:"required"`
+		Password string `json:"password" validate:"required"`
+	}
+
+	type loginResponse struct {
+		JWT string `json:"jwt"`
+	}
+
 	ctx := c.Request().Context()
 
 	req, err := helpers.Bind[loginRequest](c)
@@ -24,7 +24,7 @@ func (h *Handlers) Login(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	correct, token, err := h.authService.Login(ctx, req.Username, req.Password)
+	correct, token, err := h.authService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to login")
 		return echo.ErrInternalServerError
@@ -37,5 +37,28 @@ func (h *Handlers) Login(c echo.Context) error {
 	resp := loginResponse{
 		JWT: token,
 	}
-	return c.JSON(http.StatusCreated, resp)
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (h *Handlers) Signup(c echo.Context) error {
+	type signupRequest struct {
+		Email    string `json:"email" validate:"required"`
+		Name     string `json:"name" validate:"required"`
+		Password string `json:"password" validate:"required"`
+	}
+
+	ctx := c.Request().Context()
+
+	req, err := helpers.Bind[signupRequest](c)
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	err = h.authService.Signup(ctx, req.Email, req.Name, req.Password)
+	if err != nil {
+		h.logger.WithError(err).Error("failed to signup")
+		return echo.ErrInternalServerError
+	}
+
+	return c.NoContent(http.StatusCreated)
 }

@@ -2,60 +2,66 @@ package controllers
 
 import (
 	"foosball/internal/authentication"
+	"foosball/internal/invite"
 	"foosball/internal/match"
-	"foosball/internal/player"
+	"foosball/internal/organization"
 	"foosball/internal/rating"
-	"foosball/internal/team"
+	"foosball/internal/user"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
 type Handlers struct {
-	logger        *logrus.Entry
-	authService   authentication.Service
-	playerService player.Service
-	matchService  match.Service
-	ratingService rating.Service
-	teamService   team.Service
+	logger              *logrus.Entry
+	authService         authentication.Service
+	userService         user.Service
+	organizationService organization.Service
+	inviteService       invite.Service
+	matchService        match.Service
+	ratingService       rating.Service
 }
 
 func Register(
 	e *echo.Group,
 	logger *logrus.Entry,
 	authService authentication.Service,
-	playerService player.Service,
+	userService user.Service,
+	organizationService organization.Service,
+	inviteService invite.Service,
 	matchService match.Service,
 	ratingService rating.Service,
-	teamService team.Service,
 ) {
 	h := &Handlers{
-		logger:        logger,
-		authService:   authService,
-		playerService: playerService,
-		matchService:  matchService,
-		ratingService: ratingService,
-		teamService:   teamService,
+		logger:              logger,
+		authService:         authService,
+		userService:         userService,
+		organizationService: organizationService,
+		inviteService:       inviteService,
+		matchService:        matchService,
+		ratingService:       ratingService,
 	}
 
 	// Authentication
 	e.POST("/login", h.Login)
+	e.POST("/signup", h.Signup)
 
-	// Players
-	e.GET("/player/:id", h.GetPlayer)
-	e.POST("/player", h.PostPlayer)
-	e.DELETE("/player/:id", h.DeletePlayer)
-	e.GET("/player/:id/stats", h.GetPlayerStatistics)
+	// Users
+	e.DELETE("/user/:userId", h.DeleteUser)
+	e.GET("/user/:userId/invites", h.GetUserInvites)
+	e.POST("/user/:userId/invite/:inviteId/accept", h.AcceptInvite)
+	e.POST("/user/:userId/invite/:inviteId/decline", h.DeclineInvite)
+
+	// Organizations
+	e.GET("/organization/:orgId/users", h.GetUsersInOrganization)
+	e.DELETE("/organization/:orgId", h.DeleteOrganization)
+	e.POST("/organization", h.CreateOrganization)
+	e.POST("/organization/:orgId", h.UpdateOrganization)
+	e.POST("/organization/:orgId/invite", h.InviteUserToOrganization)
+	e.POST("/organization/:orgId/user/:userId/remove", h.RemoveUserFromOrganization)
+	e.POST("/organization/:orgId/user/:userId/admin", h.SetUserAsAdmin)
+	e.POST("/organization/:orgId/user/:userId/admin/remove", h.RemoveAdminFromUser)
 
 	// Matches
-	e.GET("/match/:id", h.GetMatch)
 	e.POST("/match", h.PostMatch)
-
-	// Seasons
-	e.GET("/season/:id", h.GetSeason)
-	e.POST("/season", h.CreateSeason)
-	e.DELETE("/season/:id", h.DeleteSeason)
-
-	// Leaderboards
-	e.GET("/leaderboard/rating", h.GetLeaderboardRating)
 }

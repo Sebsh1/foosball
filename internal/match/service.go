@@ -2,88 +2,66 @@ package match
 
 import (
 	"context"
-	"foosball/internal/player"
-	"foosball/internal/season"
-
-	"github.com/pkg/errors"
+	"encoding/json"
 )
 
-type Config struct {
-	Method string
-}
-
 type Service interface {
-	GetMatch(ctx context.Context, id uint) (*Match, error)
-	GetMatchesWithPlayerID(ctx context.Context, playerID uint) ([]*Match, error)
-	CreateMatch(ctx context.Context, teamAID, teamBID uint, goalsA, goalsB int) error
-	DeleteMatch(ctx context.Context, id uint) error
+	DetermineResult(ctx context.Context, teamA, teamB []uint, sets []Set) (draw bool, winner []uint, loser []uint)
+	CreateMatch(ctx context.Context, teamA, teamB []uint, sets []Set) error
 }
 
 type ServiceImpl struct {
-	repo          Repository
-	playerService player.Service
-	seasonService season.Service
+	repo Repository
 }
 
-func NewService(repo Repository, playerService player.Service, seasonService season.Service) Service {
+func NewService(repo Repository) Service {
 	return &ServiceImpl{
-		repo:          repo,
-		playerService: playerService,
-		seasonService: seasonService,
+		repo: repo,
 	}
 }
 
-func (s *ServiceImpl) CreateMatch(ctx context.Context, teamAID, teamBID uint, goalsA, goalsB int) error {
-	seasonID, err := s.seasonService.GetCurrentSeasonID(ctx)
+func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []uint, sets []Set) error {
+	marshalledTeamA, err := json.Marshal(teamA)
 	if err != nil {
-		return errors.Wrap(err, "failed to get current season id")
+		return err
+	}
+
+	marshalledTeamB, err := json.Marshal(teamB)
+	if err != nil {
+		return err
 	}
 
 	match := &Match{
-		SeasonID: seasonID,
-		TeamAID:  teamAID,
-		TeamBID:  teamBID,
-		GoalsA:   goalsA,
-		GoalsB:   goalsB,
+		TeamA: marshalledTeamA,
+		TeamB: marshalledTeamB,
+		Sets:  sets,
 	}
 
-	if err = s.repo.CreateMatch(ctx, match); err != nil {
-		if err == ErrDuplicateEntry {
-			return err
+	if err := s.repo.CreateMatch(ctx, match); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) DetermineResult(ctx context.Context, teamA, teamB []uint, sets []Set) (bool, []uint, []uint) {
+	teamASetWins := 0
+	teamBSetWins := 0
+
+	for _, set := range sets {
+		if set.PointsA > set.PointsB {
+			teamASetWins++
+		} else if set.PointsB > set.PointsA {
+			teamBSetWins++
 		}
-		return errors.Wrap(err, "failed to create match")
 	}
 
-	return nil
-}
-
-func (s *ServiceImpl) GetMatch(ctx context.Context, id uint) (*Match, error) {
-	match, err := s.repo.GetMatch(ctx, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get match")
+	if teamASetWins > teamBSetWins {
+		return false, teamA, teamB
+	} else if teamBSetWins > teamASetWins {
+		return false, teamB, teamA
+	} else {
+		return true, nil, nil
 	}
 
-	return match, nil
-}
-
-func (s *ServiceImpl) DeleteMatch(ctx context.Context, id uint) error {
-	match, err := s.repo.GetMatch(ctx, id)
-	if err != nil {
-		return errors.Wrap(err, "failed to get match")
-	}
-
-	err = s.repo.DeleteMatch(ctx, match)
-	if err != nil {
-		return errors.Wrap(err, "failed to delete match")
-	}
-
-	return nil
-}
-func (s *ServiceImpl) GetMatchesWithPlayerID(ctx context.Context, playerID uint) ([]*Match, error) {
-	matches, err := s.repo.GetMatchesWithPlayerID(ctx, playerID)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get matches with player id %d", playerID)
-	}
-
-	return matches, nil
 }

@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"foosball/internal/authentication"
+	"foosball/internal/invite"
 	"foosball/internal/match"
-	"foosball/internal/player"
+	"foosball/internal/organization"
 	"foosball/internal/rating"
 	"foosball/internal/rest/controllers"
 	"foosball/internal/rest/helpers"
-	"foosball/internal/team"
+	"foosball/internal/user"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -31,10 +32,11 @@ func NewServer(
 	conf Config,
 	logger *logrus.Logger,
 	authService authentication.Service,
-	playerService player.Service,
+	userService user.Service,
+	organizationService organization.Service,
+	inviteService invite.Service,
 	matchService match.Service,
 	ratingService rating.Service,
-	teamService team.Service,
 ) (*Server, error) {
 	e := echo.New()
 
@@ -60,10 +62,11 @@ func NewServer(
 		root,
 		logger.WithField("module", "rest"),
 		authService,
-		playerService,
+		userService,
+		organizationService,
+		inviteService,
 		matchService,
 		ratingService,
-		teamService,
 	)
 
 	return &Server{

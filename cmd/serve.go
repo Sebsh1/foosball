@@ -3,13 +3,15 @@ package cmd
 import (
 	"context"
 	"foosball/internal/authentication"
+	"foosball/internal/connectors/mysql"
+	"foosball/internal/invite"
 	"foosball/internal/match"
-	"foosball/internal/mysql"
-	"foosball/internal/player"
+	"foosball/internal/organization"
+	"foosball/internal/user"
+
 	"foosball/internal/rating"
 	"foosball/internal/rest"
-	"foosball/internal/season"
-	"foosball/internal/team"
+
 	"os"
 	"os/signal"
 	"syscall"
@@ -44,40 +46,40 @@ func serve(cmd *cobra.Command, args []string) {
 	}
 
 	if err := db.AutoMigrate(
-		&authentication.User{},
-		&player.Player{},
-		&team.Team{},
-		&season.Season{},
 		&match.Match{},
+		&match.Set{},
+		&organization.Organization{},
+		&user.User{},
+		&invite.Invite{},
 	); err != nil {
 		log.WithError(err).Fatal("failed to auto migrate database")
 	}
 
-	authRepo := authentication.NewRepository(db)
-	authService := authentication.NewService(config.Auth, authRepo)
+	userReposotory := user.NewRepository(db)
+	userService := user.NewService(userReposotory)
 
-	playerRepo := player.NewRepository(db)
-	playerService := player.NewService(playerRepo)
+	ratingService := rating.NewService(config.Rating, userService)
 
-	ratingService := rating.NewService(config.Rating, playerService)
+	organizationRepository := organization.NewRepository(db)
+	organizationService := organization.NewService(organizationRepository)
 
-	teamRepo := team.NewRepository(db)
-	teamService := team.NewService(teamRepo)
+	authService := authentication.NewService(config.Auth, userService)
 
-	seasonRepo := season.NewRepository(db)
-	seasonService := season.NewService(config.Season, seasonRepo)
+	inviteRepo := invite.NewRepository(db)
+	inviteService := invite.NewService(inviteRepo, userService, organizationService)
 
 	matchRepo := match.NewRepository(db)
-	matchService := match.NewService(matchRepo, playerService, seasonService)
+	matchService := match.NewService(matchRepo)
 
 	httpServer, err := rest.NewServer(
 		config.Rest,
 		log,
 		authService,
-		playerService,
+		userService,
+		organizationService,
+		inviteService,
 		matchService,
 		ratingService,
-		teamService,
 	)
 	if err != nil {
 		log.WithError(err).Fatal("failed to create http server")
