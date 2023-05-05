@@ -12,10 +12,9 @@ import (
 type Method string
 
 const (
-	Elo      Method = "elo"
-	Weighted Method = "weighted"
-	RMS      Method = "rms"
-	Glicko2  Method = "glicko2"
+	Elo     Method = "elo"
+	RMS     Method = "rms"
+	Glicko2 Method = "glicko2"
 )
 
 type Config struct {
@@ -43,12 +42,12 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winners, los
 		return nil // TODO implement draw in rating methods
 	}
 
-	winnerUsers, err := s.userService.GetUsers(ctx, winners)
+	winnerUsersStats, err := s.userService.GetUsersStats(ctx, winners)
 	if err != nil {
 		return errors.Wrap(err, "failed to get winner users")
 	}
 
-	loserUsers, err := s.userService.GetUsers(ctx, losers)
+	loserUsersStats, err := s.userService.GetUsersStats(ctx, losers)
 	if err != nil {
 		return errors.Wrap(err, "failed to get loser users")
 	}
@@ -58,16 +57,14 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winners, los
 
 	switch s.config.Method {
 	case Elo:
-		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsElo(winnerUsers, loserUsers)
-	case Weighted:
-		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsWeighted(winnerUsers, loserUsers)
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsElo(winnerUsersStats, loserUsersStats)
 	case RMS:
-		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsRMS(winnerUsers, loserUsers)
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsRMS(winnerUsersStats, loserUsersStats)
 	case Glicko2:
-		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsGlicko2(winnerUsers, loserUsers)
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsGlicko2(winnerUsersStats, loserUsersStats)
 	default:
 		logrus.WithField("method", s.config.Method).Error("unrecognized rating method, defaulting to elo")
-		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsElo(winnerUsers, loserUsers)
+		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsElo(winnerUsersStats, loserUsersStats)
 	}
 
 	userIDs := append(winners, losers...)

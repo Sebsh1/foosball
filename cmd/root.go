@@ -36,9 +36,9 @@ type LogConfig struct {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "foosball",
-	Short: "foosball service",
-	Long:  `This is service for handling foosball data`,
+	Use:   "matchlogger",
+	Short: "matchlogger service",
+	Long:  `This is service for handling matchlogger data`,
 }
 
 func Execute() {

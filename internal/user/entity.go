@@ -10,8 +10,21 @@ type User struct {
 	Hash  string `gorm:"not null"`
 
 	OrganizationID uint
-	Rating         int `gorm:"default:1000"`
 	Admin          bool
+
+	CreatedAt time.Time
+}
+
+type UserStats struct {
+	ID uint `gorm:"primaryKey"`
+
+	UserID uint
+	User   User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+
+	Rating int `gorm:"default:1000"`
+	Wins   int `gorm:"default:0"`
+	Losses int `gorm:"default:0"`
+	Draws  int `gorm:"default:0"`
 
 	CreatedAt time.Time
 }

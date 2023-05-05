@@ -10,49 +10,25 @@ var (
 	scaleFactor = 400.0
 )
 
-func (s *ServiceImpl) calculateNewRatingsElo(winners, losers []*user.User) ([]int, []int) {
-	ratingA := s.getAverageRating(winners)
-	ratingB := s.getAverageRating(losers)
+func (s *ServiceImpl) calculateNewRatingsElo(winners, losers []*user.UserStats) ([]int, []int) {
+	ratingWinners := s.getAverageRating(winners)
+	ratingLosers := s.getAverageRating(losers)
 
-	return s.getNewRatings(ratingA, ratingB, winners, losers)
+	return s.getNewRatings(ratingWinners, ratingLosers, winners, losers)
 }
 
-func (s *ServiceImpl) calculateNewRatingsWeighted(winners, losers []*user.User) ([]int, []int) {
+func (s *ServiceImpl) calculateNewRatingsRMS(winners, losers []*user.UserStats) ([]int, []int) {
+	ratingWinners := s.getRMSRating(winners)
+	ratingLosers := s.getRMSRating(losers)
+
+	return s.getNewRatings(ratingWinners, ratingLosers, winners, losers)
+}
+
+func (s *ServiceImpl) calculateNewRatingsGlicko2(winners, losers []*user.UserStats) ([]int, []int) {
 	panic("unimplemented") // TODO
 }
 
-func (s *ServiceImpl) calculateNewRatingsRMS(winners, losers []*user.User) ([]int, []int) {
-	ratingA := s.getRMSRating(winners)
-	ratingB := s.getRMSRating(losers)
-
-	return s.getNewRatings(ratingA, ratingB, winners, losers)
-}
-
-func (s *ServiceImpl) calculateNewRatingsGlicko2(winners, losers []*user.User) ([]int, []int) {
-	panic("unimplemented") // TODO
-}
-
-func (s *ServiceImpl) getAverageRating(users []*user.User) float64 {
-	sum := 0.0
-	for _, u := range users {
-		sum += float64(u.Rating)
-	}
-
-	return sum / float64(len(users))
-}
-
-func (s *ServiceImpl) getRMSRating(users []*user.User) float64 {
-	n := 15.0
-	sum := 0.0
-	for _, u := range users {
-		sum += math.Pow(float64(u.Rating), n)
-	}
-	rating := math.Pow(sum, 1/n) / float64(len(users))
-
-	return rating
-}
-
-func (s *ServiceImpl) getNewRatings(winnersRating, losersRating float64, winners, losers []*user.User) ([]int, []int) {
+func (s *ServiceImpl) getNewRatings(winnersRating, losersRating float64, winners, losers []*user.UserStats) ([]int, []int) {
 	newRatingWinners := make([]int, len(winners))
 	probabilityWinA := 1 / (1 + math.Pow(10, (winnersRating-losersRating)/scaleFactor))
 	for i, u := range winners {
@@ -66,4 +42,24 @@ func (s *ServiceImpl) getNewRatings(winnersRating, losersRating float64, winners
 	}
 
 	return newRatingWinners, newRatingLosers
+}
+
+func (s *ServiceImpl) getAverageRating(users []*user.UserStats) float64 {
+	sum := 0
+	for _, u := range users {
+		sum += u.Rating
+	}
+
+	return float64(sum) / float64(len(users))
+}
+
+func (s *ServiceImpl) getRMSRating(users []*user.UserStats) float64 {
+	n := 15.0
+	sum := 0.0
+	for _, u := range users {
+		sum += math.Pow(float64(u.Rating), n)
+	}
+	rating := math.Pow(sum, 1/n) / float64(len(users))
+
+	return rating
 }

@@ -17,6 +17,7 @@ var (
 
 type Repository interface {
 	GetUsers(ctx context.Context, ids []uint) ([]*User, error)
+	GetUsersStats(ctx context.Context, ids []uint) ([]*UserStats, error)
 	GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	CreateUser(ctx context.Context, user *User) error
@@ -42,6 +43,15 @@ func (r *RepositoryImpl) GetUsers(ctx context.Context, ids []uint) ([]*User, err
 	}
 
 	return users, nil
+}
+
+func (r *RepositoryImpl) GetUsersStats(ctx context.Context, ids []uint) ([]*UserStats, error) {
+	var usersStats []*UserStats
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&usersStats).Error; err != nil {
+		return nil, err
+	}
+
+	return usersStats, nil
 }
 
 func (r *RepositoryImpl) GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error) {

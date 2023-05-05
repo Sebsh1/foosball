@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	GetUsers(ctx context.Context, ids []uint) ([]*User, error)
+	GetUsersStats(ctx context.Context, ids []uint) ([]*UserStats, error)
 	GetUserByEmail(ctx context.Context, email string) (exists bool, user *User, err error)
 	GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error)
 	CreateUser(ctx context.Context, email, name, hash string) error
@@ -30,6 +31,15 @@ func (s *ServiceImpl) GetUsers(ctx context.Context, ids []uint) ([]*User, error)
 	users, err := s.repo.GetUsers(ctx, ids)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get users")
+	}
+
+	return users, nil
+}
+
+func (s *ServiceImpl) GetUsersStats(ctx context.Context, ids []uint) ([]*UserStats, error) {
+	users, err := s.repo.GetUsersStats(ctx, ids)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get users stats")
 	}
 
 	return users, nil

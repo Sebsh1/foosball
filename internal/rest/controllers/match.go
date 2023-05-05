@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"foosball/internal/match"
+	"foosball/internal/rest/handlers"
 	"foosball/internal/rest/helpers"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handlers) PostMatch(c echo.Context) error {
+func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 	type postMatchRequest struct {
 		TeamA []uint      `json:"teamA" validate:"required"`
 		TeamB []uint      `json:"teamB" validate:"required"`

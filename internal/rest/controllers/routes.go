@@ -6,6 +6,8 @@ import (
 	"foosball/internal/match"
 	"foosball/internal/organization"
 	"foosball/internal/rating"
+	"foosball/internal/rest/handlers"
+	"foosball/internal/rest/middleware"
 	"foosball/internal/user"
 
 	"github.com/labstack/echo/v4"
@@ -42,26 +44,32 @@ func Register(
 		ratingService:       ratingService,
 	}
 
+	authHandler := handlers.AuthenticatedHandlerFactory(logger)
+	authGuard := middleware.AuthGuard(authService)
+
 	// Authentication
 	e.POST("/login", h.Login)
 	e.POST("/signup", h.Signup)
 
 	// Users
-	e.DELETE("/user/:userId", h.DeleteUser)
-	e.GET("/user/:userId/invites", h.GetUserInvites)
-	e.POST("/user/:userId/invite/:inviteId/accept", h.AcceptInvite)
-	e.POST("/user/:userId/invite/:inviteId/decline", h.DeclineInvite)
+	userGroup := e.Group("/user", authGuard())
+	userGroup.DELETE("", authHandler(h.DeleteUser))
+	userGroup.GET("/:userId/invites", authHandler(h.GetUserInvites))
+	userGroup.POST("/:userId/invite/:inviteId/accept", authHandler(h.AcceptInvite))
+	userGroup.POST("/:userId/invite/:inviteId/decline", authHandler(h.DeclineInvite))
 
 	// Organizations
-	e.GET("/organization/:orgId/users", h.GetUsersInOrganization)
-	e.DELETE("/organization/:orgId", h.DeleteOrganization)
-	e.POST("/organization", h.CreateOrganization)
-	e.POST("/organization/:orgId", h.UpdateOrganization)
-	e.POST("/organization/:orgId/invite", h.InviteUserToOrganization)
-	e.POST("/organization/:orgId/user/:userId/remove", h.RemoveUserFromOrganization)
-	e.POST("/organization/:orgId/user/:userId/admin", h.SetUserAsAdmin)
-	e.POST("/organization/:orgId/user/:userId/admin/remove", h.RemoveAdminFromUser)
+	orgGroup := e.Group("/organization", authGuard())
+	orgGroup.GET("/:orgId/users", authHandler(h.GetUsersInOrganization))
+	orgGroup.DELETE("/:orgId", authHandler(h.DeleteOrganization))
+	orgGroup.POST("", authHandler(h.CreateOrganization))
+	orgGroup.POST("/:orgId", authHandler(h.UpdateOrganization))
+	orgGroup.POST("/:orgId/invite/", authHandler(h.InviteUserToOrganization))
+	orgGroup.POST("/:orgId/user/:userId/remove", authHandler(h.RemoveUserFromOrganization))
+	orgGroup.POST("/:orgId/user/:userId/admin", authHandler(h.SetUserAsAdmin))
+	orgGroup.POST("/:orgId/user/:userId/admin/remove", authHandler(h.RemoveAdminFromUser))
 
 	// Matches
-	e.POST("/match", h.PostMatch)
+	matchGroup := e.Group("/match", authGuard())
+	matchGroup.POST("", authHandler(h.PostMatch))
 }
