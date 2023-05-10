@@ -43,7 +43,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 		return false, "", nil
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(user.Hash)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Hash), []byte(password)); err != nil {
 		return false, "", nil
 	}
 
