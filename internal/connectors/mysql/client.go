@@ -10,19 +10,14 @@ import (
 )
 
 type Config struct {
-	DSN   string `mapstructure:"dsn" validate:"required"`
-	Debug bool   `mapstructure:"debug" default:"false"`
+	DSN string `mapstructure:"dsn" validate:"required"`
 }
 
-func NewClient(ctx context.Context, conf Config) (*gorm.DB, error) {
-	dialect := mysql.Open(conf.DSN)
+func NewClient(ctx context.Context, dsn string) (*gorm.DB, error) {
+	dialect := mysql.Open(dsn)
 
 	gormConfig := &gorm.Config{}
-	if conf.Debug {
-		gormConfig.Logger = logger.Default.LogMode(logger.Info)
-	} else {
-		gormConfig.Logger = logger.Default.LogMode(logger.Silent)
-	}
+	gormConfig.Logger = logger.Default.LogMode(logger.Silent)
 
 	db, err := gorm.Open(dialect, gormConfig)
 	if err != nil {

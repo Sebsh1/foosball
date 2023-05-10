@@ -19,17 +19,16 @@ import (
 )
 
 type Config struct {
-	Port                 uint32 `mapstructure:"port" default:"8001"`
-	GZIPCompressionLevel int    `mapstructure:"gzip_compression_level" default:"5"`
+	Port uint32 `mapstructure:"port" default:"8001"`
 }
 
 type Server struct {
-	echo   *echo.Echo
-	config Config
+	echo *echo.Echo
+	port int
 }
 
 func NewServer(
-	conf Config,
+	port int,
 	logger *logrus.Logger,
 	authService authentication.Service,
 	userService user.Service,
@@ -51,12 +50,11 @@ func NewServer(
 			AllowOrigins: []string{"*"},
 		}),
 		middleware.GzipWithConfig(middleware.GzipConfig{
-			Level:   conf.GZIPCompressionLevel,
 			Skipper: middleware.DefaultGzipConfig.Skipper,
 		}),
 	)
 
-	root := e.Group("/foosball")
+	root := e.Group("/api")
 
 	controllers.Register(
 		root,
@@ -70,13 +68,13 @@ func NewServer(
 	)
 
 	return &Server{
-		echo:   e,
-		config: conf,
+		echo: e,
+		port: port,
 	}, nil
 }
 
 func (s *Server) Start() error {
-	return errors.Wrap(s.echo.Start(fmt.Sprintf(":%d", s.config.Port)), "Failed to start server")
+	return errors.Wrap(s.echo.Start(fmt.Sprintf(":%d", s.port)), "Failed to start server")
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {

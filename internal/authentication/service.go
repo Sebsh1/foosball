@@ -13,12 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Config struct {
-	Secret   string
-	Issuer   string
-	Audience string
-}
-
 type Service interface {
 	Login(ctx context.Context, email, password string) (valid bool, token string, err error)
 	VerifyJWT(ctx context.Context, token string) (valid bool, claims *Claims, err error)
@@ -26,13 +20,13 @@ type Service interface {
 }
 
 type ServiceImpl struct {
-	config      Config
+	secret      string
 	userService user.Service
 }
 
-func NewService(config Config, userService user.Service) Service {
+func NewService(secret string, userService user.Service) Service {
 	return &ServiceImpl{
-		config:      config,
+		secret:      secret,
 		userService: userService,
 	}
 }
@@ -88,7 +82,7 @@ func (s *ServiceImpl) Signup(ctx context.Context, email string, username string,
 
 func (s *ServiceImpl) VerifyJWT(ctx context.Context, token string) (bool, *Claims, error) {
 	parsedToken, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(s.config.Secret), nil
+		return []byte(s.secret), nil
 	})
 	if err != nil {
 		return false, nil, err
@@ -123,8 +117,8 @@ func (s *ServiceImpl) generateJWT(name string, userID, organizationID uint, admi
 		IssuedAt:  now.Unix(),
 		NotBefore: now.Unix(),
 		ExpiresAt: now.Add(6 * time.Hour).Unix(),
-		Issuer:    s.config.Issuer,
-		Audience:  s.config.Audience,
+		Issuer:    "matchlogger",
+		Audience:  "matchlogger",
 		Subject:   strconv.FormatUint(uint64(userID), 10),
 	}
 
@@ -137,7 +131,7 @@ func (s *ServiceImpl) generateJWT(name string, userID, organizationID uint, admi
 	}
 
 	tokenUnsigned := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenSigned, err := tokenUnsigned.SignedString([]byte(s.config.Secret))
+	tokenSigned, err := tokenUnsigned.SignedString([]byte(s.secret))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to sign access token")
 	}

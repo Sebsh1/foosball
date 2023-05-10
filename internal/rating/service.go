@@ -17,27 +17,21 @@ const (
 	Glicko2 Method = "glicko2"
 )
 
-type Config struct {
-	Method Method `mapstructure:"method" validate:"required" default:"elo"`
-}
-
 type Service interface {
-	UpdateRatings(ctx context.Context, draw bool, winners, losers []uint) error
+	UpdateRatings(ctx context.Context, method Method, draw bool, winners, losers []uint) error
 }
 
 type ServiceImpl struct {
-	config      Config
 	userService user.Service
 }
 
-func NewService(config Config, userService user.Service) Service {
+func NewService(userService user.Service) Service {
 	return &ServiceImpl{
-		config:      config,
 		userService: userService,
 	}
 }
 
-func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winners, losers []uint) error {
+func (s *ServiceImpl) UpdateRatings(ctx context.Context, method Method, draw bool, winners, losers []uint) error {
 	if draw {
 		return nil // TODO implement draw in rating methods
 	}
@@ -55,7 +49,7 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winners, los
 	newRatingsWinners := make([]int, len(winners))
 	newRatingsLosers := make([]int, len(losers))
 
-	switch s.config.Method {
+	switch method {
 	case Elo:
 		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsElo(winnerUsersStats, loserUsersStats)
 	case RMS:
@@ -63,7 +57,7 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winners, los
 	case Glicko2:
 		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsGlicko2(winnerUsersStats, loserUsersStats)
 	default:
-		logrus.WithField("method", s.config.Method).Error("unrecognized rating method, defaulting to elo")
+		logrus.WithField("method", method).Error("unrecognized rating method, defaulting to elo")
 		newRatingsWinners, newRatingsLosers = s.calculateNewRatingsElo(winnerUsersStats, loserUsersStats)
 	}
 

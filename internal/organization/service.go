@@ -5,6 +5,7 @@ import (
 )
 
 type Service interface {
+	GetOrganization(ctx context.Context, id uint) (*Organization, error)
 	CreateOrganization(ctx context.Context, name, ratingMethod string) error
 	DeleteOrganization(ctx context.Context, id uint) error
 	UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error
@@ -18,6 +19,15 @@ func NewService(repo Repository) Service {
 	return &ServiceImpl{
 		repo: repo,
 	}
+}
+
+func (s *ServiceImpl) GetOrganization(ctx context.Context, id uint) (*Organization, error) {
+	org, err := s.repo.GetOrganization(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return org, nil
 }
 
 func (s *ServiceImpl) CreateOrganization(ctx context.Context, name, ratingMethod string) error {

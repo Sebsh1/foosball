@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"foosball/internal/match"
+	"foosball/internal/rating"
 	"foosball/internal/rest/handlers"
 	"foosball/internal/rest/helpers"
 	"net/http"
@@ -11,9 +12,10 @@ import (
 
 func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 	type postMatchRequest struct {
-		TeamA []uint      `json:"teamA" validate:"required"`
-		TeamB []uint      `json:"teamB" validate:"required"`
-		Sets  []match.Set `json:"sets" validate:"required"`
+		OrganiziationID uint        `json:"organizationId" validate:"required"`
+		TeamA           []uint      `json:"teamA" validate:"required"`
+		TeamB           []uint      `json:"teamB" validate:"required"`
+		Sets            []match.Set `json:"sets" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -23,6 +25,12 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
+	org, err := h.organizationService.GetOrganization(ctx, req.OrganiziationID)
+	if err != nil {
+		h.logger.WithError(err).Error("failed to get organization")
+		return echo.ErrInternalServerError
+	}
+
 	if err = h.matchService.CreateMatch(ctx, req.TeamA, req.TeamB, req.Sets); err != nil {
 		h.logger.WithError(err).Error("failed to create match")
 		return echo.ErrInternalServerError
@@ -30,7 +38,7 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 
 	draw, winner, loser := h.matchService.DetermineResult(ctx, req.TeamA, req.TeamB, req.Sets)
 
-	if err := h.ratingService.UpdateRatings(ctx, draw, winner, loser); err != nil {
+	if err := h.ratingService.UpdateRatings(ctx, rating.Method(org.RatingMethod), draw, winner, loser); err != nil {
 		h.logger.WithError(err).Error("failed to update ratings")
 		return echo.ErrInternalServerError
 	}

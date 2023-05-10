@@ -25,6 +25,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Config struct {
+	LogLevel string `mapstructure:"LOG_LEVEL" validate:"required,oneof=debug info warn error fatal panic" defaukt:"info"`
+	DSN      string `mapstructure:"MYSQL_DSN" validate:"required"`
+	RestPort int    `mapstructure:"REST_PORT" validate:"required" `
+	Secret   string `mapstructure:"SECRET" validate:"required"`
+}
+
 func main() {
 	initConfig()
 
@@ -35,9 +42,9 @@ func main() {
 		logrus.WithError(err).Fatal("failed to load config")
 	}
 
-	log := getLogger(config.Log)
+	log := getLogger(config.LogLevel)
 
-	db, err := mysql.NewClient(ctx, config.DB)
+	db, err := mysql.NewClient(ctx, config.DSN)
 	if err != nil {
 		log.WithError(err).Fatal("failed to connect to database")
 	}
@@ -55,12 +62,12 @@ func main() {
 	userReposotory := user.NewRepository(db)
 	userService := user.NewService(userReposotory)
 
-	ratingService := rating.NewService(config.Rating, userService)
+	ratingService := rating.NewService(userService)
 
 	organizationRepository := organization.NewRepository(db)
 	organizationService := organization.NewService(organizationRepository)
 
-	authService := authentication.NewService(config.Auth, userService)
+	authService := authentication.NewService(config.Secret, userService)
 
 	inviteRepo := invite.NewRepository(db)
 	inviteService := invite.NewService(inviteRepo, userService, organizationService)
@@ -69,7 +76,7 @@ func main() {
 	matchService := match.NewService(matchRepo)
 
 	httpServer, err := rest.NewServer(
-		config.Rest,
+		config.RestPort,
 		log,
 		authService,
 		userService,
@@ -85,7 +92,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	log.WithField("port", config.Rest.Port).Info("REST server starting")
+	log.WithField("port", config.RestPort).Info("REST server starting")
 	go func() {
 		if err := httpServer.Start(); err != nil {
 			log.WithError(err).Error("failed to start http server")
@@ -97,7 +104,7 @@ func main() {
 
 	<-ctx.Done()
 	log.Info("shutting down")
-	shutdownCtx, stop := context.WithTimeout(context.Background(), shutdownPeriod)
+	shutdownCtx, stop := context.WithTimeout(context.Background(), 15*time.Second)
 	defer stop()
 
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
@@ -106,24 +113,8 @@ func main() {
 
 }
 
-var cfgFile string
-
-const shutdownPeriod = 15 * time.Second
-
-type LogConfig struct {
-	Level string `mapstructure:"level" validate:"required"`
-}
-
-type Config struct {
-	Log    LogConfig             `mapstructure:"log" validate:"dive"`
-	Rest   rest.Config           `mapstructure:"rest" validate:"dive"`
-	Auth   authentication.Config `mapstructure:"auth" validate:"dive"`
-	DB     mysql.Config          `mapstructure:"db" validate:"dive"`
-	Rating rating.Config         `mapstructure:"rating" validate:"dive"`
-}
-
 func initConfig() {
-	viper.AddConfigPath(".env")
+	viper.AddConfigPath("ENV")
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
 }
@@ -153,9 +144,9 @@ func loadConfig(configs ...string) (*Config, error) {
 	return &config, nil
 }
 
-func getLogger(config LogConfig) *logrus.Logger {
+func getLogger(logLevel string) *logrus.Logger {
 	logger := logrus.New()
-	lvl, err := logrus.ParseLevel(config.Level)
+	lvl, err := logrus.ParseLevel(logLevel)
 	if err != nil {
 		lvl = logrus.InfoLevel
 		logger.WithError(err).Warnf("failed to parse log level, setting log level to '%s'", lvl)

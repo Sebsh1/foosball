@@ -15,6 +15,7 @@ var (
 )
 
 type Repository interface {
+	GetOrganization(ctx context.Context, id uint) (*Organization, error)
 	CreateOrganization(ctx context.Context, organization *Organization) error
 	DeleteOrganization(ctx context.Context, id uint) error
 	UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error
@@ -28,6 +29,15 @@ func NewRepository(db *gorm.DB) Repository {
 	return &RepositoryImpl{
 		db: db,
 	}
+}
+
+func (r *RepositoryImpl) GetOrganization(ctx context.Context, id uint) (*Organization, error) {
+	var org Organization
+	if err := r.db.WithContext(ctx).First(&org, id).Error; err != nil {
+		return nil, err
+	}
+
+	return &org, nil
 }
 
 func (r *RepositoryImpl) CreateOrganization(ctx context.Context, organization *Organization) error {
