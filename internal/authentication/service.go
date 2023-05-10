@@ -104,7 +104,7 @@ func (s *ServiceImpl) VerifyJWT(ctx context.Context, token string) (bool, *Claim
 	return true, claims, nil
 }
 
-func (s *ServiceImpl) generateJWT(name string, userID, organizationID uint, admin bool) (string, error) {
+func (s *ServiceImpl) generateJWT(name string, userID uint, organizationID *uint, admin bool) (string, error) {
 	tokenUUID, err := uuid.NewRandom()
 	if err != nil {
 		return "", errors.New("failed to generate uuid")
@@ -126,7 +126,7 @@ func (s *ServiceImpl) generateJWT(name string, userID, organizationID uint, admi
 		StandardClaims: standardClaims,
 		Name:           name,
 		UserID:         userID,
-		OrganizationID: organizationID,
+		OrganizationID: *organizationID,
 		Admin:          admin,
 	}
 

@@ -95,7 +95,7 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, id uint, email, name, hash
 		Email:          email,
 		Name:           name,
 		Hash:           hash,
-		OrganizationID: organizationID,
+		OrganizationID: &organizationID,
 		Admin:          admin,
 	}
 

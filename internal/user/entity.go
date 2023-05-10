@@ -9,7 +9,7 @@ type User struct {
 	Name  string `gorm:"index;not null"`
 	Hash  string `gorm:"not null"`
 
-	OrganizationID uint
+	OrganizationID *uint
 	Admin          bool
 
 	CreatedAt time.Time

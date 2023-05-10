@@ -64,7 +64,7 @@ func (r *RepositoryImpl) GetUsersInOrganization(ctx context.Context, organizatio
 }
 
 func (r *RepositoryImpl) CreateUser(ctx context.Context, user *User) error {
-	if err := r.db.WithContext(ctx).Create(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(&user).Omit("organization_id").Error; err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
 			return ErrDuplicateEntry
