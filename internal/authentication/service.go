@@ -17,7 +17,7 @@ import (
 type Service interface {
 	Login(ctx context.Context, email, password string) (valid bool, token string, err error)
 	VerifyJWT(ctx context.Context, token string) (valid bool, claims *Claims, err error)
-	Signup(ctx context.Context, email, username, password string) error
+	Signup(ctx context.Context, email, username, password string) (success bool, err error)
 }
 
 type ServiceImpl struct {
@@ -61,26 +61,26 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 	return true, token, nil
 }
 
-func (s *ServiceImpl) Signup(ctx context.Context, email string, username string, password string) error {
+func (s *ServiceImpl) Signup(ctx context.Context, email string, username string, password string) (bool, error) {
 	exists, _, err := s.userService.GetUserByEmail(ctx, email)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if exists {
-		return errors.New("email alreadyin use")
+		return false, nil
 	}
 
 	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if err = s.userService.CreateUser(ctx, email, username, string(hashedPasswordBytes)); err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }
 
 func (s *ServiceImpl) VerifyJWT(ctx context.Context, token string) (bool, *Claims, error) {

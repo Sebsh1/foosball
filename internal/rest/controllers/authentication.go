@@ -54,10 +54,14 @@ func (h *Handlers) Signup(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	err = h.authService.Signup(ctx, req.Email, req.Name, req.Password)
+	success, err := h.authService.Signup(ctx, req.Email, req.Name, req.Password)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to signup")
 		return echo.ErrInternalServerError
+	}
+
+	if !success {
+		return echo.ErrBadRequest
 	}
 
 	return c.NoContent(http.StatusCreated)
