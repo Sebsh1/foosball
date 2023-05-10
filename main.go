@@ -27,7 +27,7 @@ import (
 
 type Config struct {
 	LogLevel string `mapstructure:"LOGLEVEL" validate:"required,oneof=debug info warn error fatal panic" defaukt:"info"`
-	RestPort int    `mapstructure:"RESTPORT" validate:"required" `
+	Port     int    `mapstructure:"PORT" validate:"required" `
 	DBUser   string `mapstructure:"MYSQLUSER" validate:"required"`
 	DBPass   string `mapstructure:"MYSQLPASSWORD" validate:"required"`
 	DBHost   string `mapstructure:"MYSQLHOST" validate:"required"`
@@ -81,7 +81,7 @@ func main() {
 	matchService := match.NewService(matchRepo)
 
 	httpServer, err := rest.NewServer(
-		config.RestPort,
+		config.Port,
 		log,
 		authService,
 		userService,
@@ -97,7 +97,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	log.WithField("port", config.RestPort).Info("REST server starting")
+	log.WithField("port", config.Port).Info("REST server starting")
 	go func() {
 		if err := httpServer.Start(); err != nil {
 			log.WithError(err).Error("failed to start http server")
