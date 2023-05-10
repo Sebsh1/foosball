@@ -52,14 +52,14 @@ func Register(
 	e.POST("/signup", h.Signup)
 
 	// Users
-	userGroup := e.Group("/user", authGuard())
+	userGroup := e.Group("/user", authGuard)
 	userGroup.DELETE("", authHandler(h.DeleteUser))
 	userGroup.GET("/:userId/invites", authHandler(h.GetUserInvites))
 	userGroup.POST("/:userId/invite/:inviteId/accept", authHandler(h.AcceptInvite))
 	userGroup.POST("/:userId/invite/:inviteId/decline", authHandler(h.DeclineInvite))
 
 	// Organizations
-	orgGroup := e.Group("/organization", authGuard())
+	orgGroup := e.Group("/organization", authGuard)
 	orgGroup.GET("/:orgId/users", authHandler(h.GetUsersInOrganization))
 	orgGroup.DELETE("/:orgId", authHandler(h.DeleteOrganization))
 	orgGroup.POST("", authHandler(h.CreateOrganization))
@@ -70,6 +70,6 @@ func Register(
 	orgGroup.POST("/:orgId/user/:userId/admin/remove", authHandler(h.RemoveAdminFromUser))
 
 	// Matches
-	matchGroup := e.Group("/match", authGuard())
+	matchGroup := e.Group("/match", authGuard)
 	matchGroup.POST("", authHandler(h.PostMatch))
 }
