@@ -43,13 +43,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 		return false, "", nil
 	}
 
-	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
-	if err != nil {
-		return false, "", err
-	}
-
-	if err = bcrypt.CompareHashAndPassword(hashedPasswordBytes, []byte(user.Hash)); err != nil {
-		logrus.WithField("stored hash", user.Hash).WithField("supplied hash", string(hashedPasswordBytes)).Debug("hashes do not match")
+	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(user.Hash)); err != nil {
 		return false, "", nil
 	}
 
