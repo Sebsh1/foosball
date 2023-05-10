@@ -26,13 +26,13 @@ import (
 )
 
 type Config struct {
-	LogLevel string `mapstructure:"LOG_LEVEL" validate:"required,oneof=debug info warn error fatal panic" defaukt:"info"`
-	RestPort int    `mapstructure:"REST_PORT" validate:"required" `
+	LogLevel string `mapstructure:"LOGLEVEL" validate:"required,oneof=debug info warn error fatal panic" defaukt:"info"`
+	RestPort int    `mapstructure:"RESTPORT" validate:"required" `
 	DBUser   string `mapstructure:"MYSQLUSER" validate:"required"`
-	DBPass   string `mapstructure:"MYSQLPASS" validate:"required"`
+	DBPass   string `mapstructure:"MYSQLPASSWORD" validate:"required"`
 	DBHost   string `mapstructure:"MYSQLHOST" validate:"required"`
 	DBPort   int    `mapstructure:"MYSQLPORT" validate:"required"`
-	DBName   string `mapstructure:"MYSQLDB" validate:"required"`
+	DBName   string `mapstructure:"MYSQLDATABASE" validate:"required"`
 	Secret   string `mapstructure:"SECRET" validate:"required"`
 }
 
