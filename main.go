@@ -27,7 +27,7 @@ import (
 
 type Config struct {
 	LogLevel string `mapstructure:"LOG_LEVEL" validate:"required,oneof=debug info warn error fatal panic" defaukt:"info"`
-	DSN      string `mapstructure:"MYSQL_DSN" validate:"required"`
+	SQLURL   string `mapstructure:"MYSQL_URL" validate:"required"`
 	RestPort int    `mapstructure:"REST_PORT" validate:"required" `
 	Secret   string `mapstructure:"SECRET" validate:"required"`
 }
@@ -44,7 +44,7 @@ func main() {
 
 	log := getLogger(config.LogLevel)
 
-	db, err := mysql.NewClient(ctx, config.DSN)
+	db, err := mysql.NewClient(ctx, config.SQLURL)
 	if err != nil {
 		log.WithError(err).Fatal("failed to connect to database")
 	}
