@@ -119,11 +119,16 @@ func (s *ServiceImpl) generateJWT(name string, userID uint, organizationID *uint
 		Subject:   strconv.FormatUint(uint64(userID), 10),
 	}
 
+	orgID := uint(0)
+	if organizationID != nil {
+		orgID = *organizationID
+	}
+
 	claims := Claims{
 		StandardClaims: standardClaims,
 		Name:           name,
 		UserID:         userID,
-		OrganizationID: *organizationID,
+		OrganizationID: orgID,
 		Admin:          admin,
 	}
 
