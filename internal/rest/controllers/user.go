@@ -11,7 +11,7 @@ import (
 
 func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
 	type deleteUserRequest struct {
-		ID uint `param:"userId" validate:"required, gt=0"`
+		ID uint `param:"userId" validate:"required, gte=0"`
 	}
 
 	ctx := c.Request().Context()
@@ -35,7 +35,7 @@ func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error {
 	type getUsersInOrgRequest struct {
-		OrgId uint `json:"orgId" validate:"required, gt=0"`
+		OrgId uint `json:"orgId" validate:"required, gte=1"`
 	}
 
 	type getUsersInOrgResponse struct {
@@ -68,8 +68,8 @@ func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error
 
 func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) error {
 	type removeUserFromOrgRequest struct {
-		OrgId  uint `param:"orgId" validate:"required, gt=0"`
-		UserId uint `param:"userId" validate:"required, gt=0"`
+		OrgId  uint `param:"orgId" validate:"required, gte=1"`
+		UserId uint `param:"userId" validate:"required, gte=0"`
 	}
 
 	ctx := c.Request().Context()
@@ -104,8 +104,8 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 
 func (h *Handlers) SetUserAsAdmin(c handlers.AuthenticatedContext) error {
 	type setUserAsAdminRequest struct {
-		OrgId  uint `param:"orgId" validate:"required, gt=0"`
-		UserId uint `param:"userId" validate:"required, gt=0"`
+		OrgId  uint `param:"orgId" validate:"required, gte=1"`
+		UserId uint `param:"userId" validate:"required, gte=0"`
 	}
 
 	ctx := c.Request().Context()
@@ -140,8 +140,8 @@ func (h *Handlers) SetUserAsAdmin(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) RemoveAdminFromUser(c handlers.AuthenticatedContext) error {
 	type removeAdminFromUserRequest struct {
-		OrgId  uint `param:"orgId" validate:"required, gt=0"`
-		UserId uint `param:"userId" validate:"required, gt=0"`
+		OrgId  uint `param:"orgId" validate:"required, gte=1"`
+		UserId uint `param:"userId" validate:"required, gte=0"`
 	}
 
 	ctx := c.Request().Context()

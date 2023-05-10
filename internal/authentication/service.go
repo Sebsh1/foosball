@@ -4,11 +4,9 @@ package authentication
 import (
 	"context"
 	"foosball/internal/user"
-	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -102,21 +100,13 @@ func (s *ServiceImpl) VerifyJWT(ctx context.Context, token string) (bool, *Claim
 }
 
 func (s *ServiceImpl) generateJWT(name string, userID uint, organizationID *uint, admin bool) (string, error) {
-	tokenUUID, err := uuid.NewRandom()
-	if err != nil {
-		return "", errors.New("failed to generate uuid")
-	}
-
 	now := time.Now()
 
 	standardClaims := jwt.StandardClaims{
-		Id:        tokenUUID.String(),
 		IssuedAt:  now.Unix(),
 		NotBefore: now.Unix(),
 		ExpiresAt: now.Add(6 * time.Hour).Unix(),
 		Issuer:    "matchlogger",
-		Audience:  "matchlogger",
-		Subject:   strconv.FormatUint(uint64(userID), 10),
 	}
 
 	orgID := uint(0)
