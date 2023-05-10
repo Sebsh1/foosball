@@ -74,7 +74,7 @@ func NewServer(
 }
 
 func (s *Server) Start() error {
-	return errors.Wrap(s.echo.Start(fmt.Sprintf(":%d", s.port)), "Failed to start server")
+	return errors.Wrap(s.echo.Start(fmt.Sprintf("0.0.0.0:%d", s.port)), "Failed to start server")
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
