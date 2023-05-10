@@ -10,6 +10,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -38,6 +39,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 	}
 
 	if !exists {
+		logrus.WithField("email", email).Debug("user does not exist")
 		return false, "", nil
 	}
 
@@ -47,6 +49,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 	}
 
 	if err = bcrypt.CompareHashAndPassword(hashedPasswordBytes, []byte(user.Hash)); err != nil {
+		logrus.WithField("stored hash", user.Hash).WithField("supplied hash", string(hashedPasswordBytes)).Debug("hashes do not match")
 		return false, "", nil
 	}
 
