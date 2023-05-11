@@ -40,8 +40,8 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) DeclineInvite(c handlers.AuthenticatedContext) error {
 	type declineInviterequest struct {
-		UserID   uint `param:"userId" validate:"required, gte=0"`
-		InviteID uint `param:"inviteId" validate:"required, gte=0"`
+		UserID   uint `param:"userId" validate:"required,gte=0"`
+		InviteID uint `param:"inviteId" validate:"required,gte=0"`
 	}
 
 	ctx := c.Request().Context()
@@ -65,8 +65,8 @@ func (h *Handlers) DeclineInvite(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) AcceptInvite(c handlers.AuthenticatedContext) error {
 	type acceptInviteRequest struct {
-		UserID   uint `param:"userId" validate:"required, gte=0"`
-		InviteID uint `param:"inviteId" validate:"required, gte=0"`
+		UserID   uint `param:"userId" validate:"required,gte=0"`
+		InviteID uint `param:"inviteId" validate:"required,gte=0"`
 	}
 
 	ctx := c.Request().Context()
@@ -90,7 +90,7 @@ func (h *Handlers) AcceptInvite(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) InviteUserToOrganization(c handlers.AuthenticatedContext) error {
 	type inviteUserToOrganizationRequest struct {
-		OrganizationID uint   `json:"orgId" validate:"required, gte=1"`
+		OrganizationID uint   `json:"orgId" validate:"required,gt=0"`
 		Email          string `json:"email" validate:"required"`
 	}
 
