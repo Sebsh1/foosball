@@ -11,7 +11,7 @@ import (
 func (h *Handlers) CreateOrganization(c handlers.AuthenticatedContext) error {
 	type createOrgRequest struct {
 		Name         string `json:"name" validate:"required"`
-		RatingMethod string `json:"ratingMethod" validate:"required, oneof=elo rms glicko2"`
+		RatingMethod string `json:"ratingMethod" validate:"required,oneof=elo rms glicko2"`
 	}
 
 	ctx := c.Request().Context()
