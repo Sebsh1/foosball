@@ -10,8 +10,8 @@ type Set struct {
 	ID uint `gorm:"primaryKey"`
 
 	MatchID uint `gorm:"not null"`
-	PointsA int  `gorm:"not null"`
-	PointsB int  `gorm:"not null"`
+	PointsA int  `gorm:"not null" json:"pointsA"`
+	PointsB int  `gorm:"not null" json:"pointsB"`
 }
 
 type Match struct {

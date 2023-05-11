@@ -12,6 +12,7 @@ const ErrCodeMySQLDuplicateEntry uint16 = 1062
 
 var (
 	ErrDuplicateEntry = errors.New("already exists")
+	ErrNotFound       = errors.New("not found")
 )
 
 type Repository interface {
@@ -34,6 +35,10 @@ func NewRepository(db *gorm.DB) Repository {
 func (r *RepositoryImpl) GetOrganization(ctx context.Context, id uint) (*Organization, error) {
 	var org Organization
 	if err := r.db.WithContext(ctx).First(&org, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+
 		return nil, err
 	}
 

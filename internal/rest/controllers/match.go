@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"foosball/internal/match"
+	"foosball/internal/organization"
 	"foosball/internal/rating"
 	"foosball/internal/rest/handlers"
 	"foosball/internal/rest/helpers"
@@ -27,6 +28,10 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 
 	org, err := h.organizationService.GetOrganization(ctx, req.OrganiziationID)
 	if err != nil {
+		if err == organization.ErrNotFound {
+			return echo.ErrNotFound
+		}
+
 		h.logger.WithError(err).Error("failed to get organization")
 		return echo.ErrInternalServerError
 	}
