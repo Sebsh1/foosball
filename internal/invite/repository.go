@@ -2,13 +2,18 @@ package invite
 
 import (
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 )
 
+var (
+	ErrNotFound = errors.New("not found")
+)
+
 type Repository interface {
 	CreateInvite(ctx context.Context, userID, organizationID uint) error
-	GetInvite(ctx context.Context, id uint) (Invite, error)
+	GetInvite(ctx context.Context, id uint) (*Invite, error)
 	GetInvitesByUserID(ctx context.Context, userID uint) ([]Invite, error)
 	GetInvitesByOrganizationID(ctx context.Context, organizationID uint) ([]Invite, error)
 	DeleteInvite(ctx context.Context, id uint) error
@@ -61,10 +66,14 @@ func (r *RepositoryImpl) DeleteInvite(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *RepositoryImpl) GetInvite(ctx context.Context, id uint) (Invite, error) {
-	var invite Invite
+func (r *RepositoryImpl) GetInvite(ctx context.Context, id uint) (*Invite, error) {
+	var invite *Invite
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&invite).Error; err != nil {
-		return Invite{}, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, ErrNotFound
+		}
+
+		return nil, err
 	}
 
 	return invite, nil

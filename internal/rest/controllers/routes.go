@@ -53,7 +53,7 @@ func Register(
 
 	// Users
 	userGroup := e.Group("/user", authGuard)
-	userGroup.DELETE("", authHandler(h.DeleteUser))
+	userGroup.DELETE("/:userId", authHandler(h.DeleteUser))
 	userGroup.GET("/:userId/invites", authHandler(h.GetUserInvites))
 	userGroup.POST("/:userId/invite/:inviteId/accept", authHandler(h.AcceptInvite))
 	userGroup.POST("/:userId/invite/:inviteId/decline", authHandler(h.DeclineInvite))

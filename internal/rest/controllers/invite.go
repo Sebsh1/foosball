@@ -56,6 +56,10 @@ func (h *Handlers) DeclineInvite(c handlers.AuthenticatedContext) error {
 	}
 
 	if err := h.inviteService.DeclineInvite(ctx, req.InviteID); err != nil {
+		if err == invite.ErrNotFound {
+			return echo.ErrNotFound
+		}
+
 		h.logger.WithError(err).Error("failed to decline invite")
 		return echo.ErrInternalServerError
 	}
@@ -81,6 +85,10 @@ func (h *Handlers) AcceptInvite(c handlers.AuthenticatedContext) error {
 	}
 
 	if err := h.inviteService.AcceptInvite(ctx, req.InviteID); err != nil {
+		if err == invite.ErrNotFound {
+			return echo.ErrNotFound
+		}
+
 		h.logger.WithError(err).Error("failed to accept invite")
 		return echo.ErrInternalServerError
 	}
