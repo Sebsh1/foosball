@@ -2,6 +2,7 @@ package organization
 
 import (
 	"context"
+	"foosball/internal/user"
 )
 
 type Service interface {
@@ -9,6 +10,7 @@ type Service interface {
 	CreateOrganization(ctx context.Context, name, ratingMethod string) error
 	DeleteOrganization(ctx context.Context, id uint) error
 	UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error
+	AddUserToOrganization(ctx context.Context, user *user.User, organizationID uint) error
 }
 
 type ServiceImpl struct {
@@ -53,6 +55,14 @@ func (s *ServiceImpl) DeleteOrganization(ctx context.Context, id uint) error {
 
 func (s *ServiceImpl) UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error {
 	if err := s.repo.UpdateOrganization(ctx, id, name, ratingMethod); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) AddUserToOrganization(ctx context.Context, user *user.User, organizationID uint) error {
+	if err := s.repo.AddUserToOrganization(ctx, user, organizationID); err != nil {
 		return err
 	}
 

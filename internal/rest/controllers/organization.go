@@ -11,7 +11,7 @@ import (
 func (h *Handlers) CreateOrganization(c handlers.AuthenticatedContext) error {
 	type createOrgRequest struct {
 		Name         string `json:"name" validate:"required"`
-		RatingMethod string `json:"ratingMethod" validate:"required"`
+		RatingMethod string `json:"ratingMethod" validate:"required, oneof=elo rms glicko2"`
 	}
 
 	ctx := c.Request().Context()
@@ -61,7 +61,7 @@ func (h *Handlers) UpdateOrganization(c handlers.AuthenticatedContext) error {
 	type updateOrgRequest struct {
 		ID           uint   `param:"orgId" validate:"required,gt=0"`
 		Name         string `json:"name" validate:"required"`
-		RatingMethod string `json:"ratingMethod" validate:"required"`
+		RatingMethod string `json:"ratingMethod" validate:"required,oneof=elo rms glicko2"`
 	}
 
 	ctx := c.Request().Context()

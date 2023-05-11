@@ -2,6 +2,7 @@ package organization
 
 import (
 	"context"
+	"foosball/internal/user"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
@@ -20,6 +21,7 @@ type Repository interface {
 	CreateOrganization(ctx context.Context, organization *Organization) error
 	DeleteOrganization(ctx context.Context, id uint) error
 	UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error
+	AddUserToOrganization(ctx context.Context, user *user.User, organizationID uint) error
 }
 
 type RepositoryImpl struct {
@@ -71,6 +73,14 @@ func (r *RepositoryImpl) UpdateOrganization(ctx context.Context, id uint, name, 
 		"name":          name,
 		"rating_method": ratingMethod,
 	}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *RepositoryImpl) AddUserToOrganization(ctx context.Context, user *user.User, organizationID uint) error {
+	if err := r.db.WithContext(ctx).Model(&Organization{}).Association("Users").Append(user); err != nil {
 		return err
 	}
 

@@ -78,6 +78,15 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, id uint) error {
 		return err
 	}
 
+	org, err := s.orgService.GetOrganization(ctx, invite.OrganizationID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.orgService.AddUserToOrganization(ctx, u, org.ID); err != nil {
+		return err
+	}
+
 	if err := s.repo.DeleteInvite(ctx, id); err != nil {
 		return err
 	}
