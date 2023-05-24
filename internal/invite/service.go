@@ -74,16 +74,7 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, id uint) error {
 	}
 
 	u := users[0]
-	if err := s.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, invite.OrganizationID, u.Admin); err != nil {
-		return err
-	}
-
-	org, err := s.orgService.GetOrganization(ctx, invite.OrganizationID)
-	if err != nil {
-		return err
-	}
-
-	if err := s.orgService.AddUserToOrganization(ctx, u, org.ID); err != nil {
+	if err := s.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, &invite.OrganizationID, u.Role); err != nil {
 		return err
 	}
 

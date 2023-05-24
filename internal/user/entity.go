@@ -1,6 +1,19 @@
 package user
 
-import "time"
+import (
+	"foosball/internal/organization"
+	"foosball/internal/rating"
+	"foosball/internal/statistics"
+	"time"
+)
+
+type Role string
+
+const (
+	AdminRole  Role = "admin"
+	MemberRole Role = "member"
+	NoRole     Role = ""
+)
 
 type User struct {
 	ID uint `gorm:"primaryKey"`
@@ -9,22 +22,12 @@ type User struct {
 	Name  string `gorm:"index;not null"`
 	Hash  string `gorm:"not null"`
 
-	OrganizationID *uint
-	Admin          bool
+	OrganizationID *uint `gorm:"index"`
+	Organization   organization.Organization
+	Role           Role
 
-	CreatedAt time.Time
-}
-
-type UserStats struct {
-	ID uint `gorm:"primaryKey"`
-
-	UserID uint
-	User   User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-
-	Rating int `gorm:"default:1000"`
-	Wins   int `gorm:"default:0"`
-	Losses int `gorm:"default:0"`
-	Draws  int `gorm:"default:0"`
+	Rating     rating.Rating
+	Statistics statistics.Statistics
 
 	CreatedAt time.Time
 }

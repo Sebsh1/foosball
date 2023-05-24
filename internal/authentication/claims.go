@@ -8,7 +8,7 @@ type Claims struct {
 	jwt.StandardClaims
 
 	Name           string `json:"name"`
-	UserID         uint   `json:"userID"`
-	OrganizationID uint   `json:"organizationID"`
-	Admin          bool   `json:"admin"`
+	UserID         uint   `json:"user_id"`
+	OrganizationID uint   `json:"organization_id"`
+	Role           string `json:"role"`
 }

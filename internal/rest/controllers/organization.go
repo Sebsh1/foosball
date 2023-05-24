@@ -3,6 +3,7 @@ package controllers
 import (
 	"foosball/internal/rest/handlers"
 	"foosball/internal/rest/helpers"
+	"foosball/internal/user"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -45,7 +46,7 @@ func (h *Handlers) DeleteOrganization(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if !(c.Claims.Admin && c.Claims.OrganizationID == req.ID) {
+	if c.Claims.Role != string(user.AdminRole) && c.Claims.OrganizationID == req.ID {
 		return echo.ErrUnauthorized
 	}
 
@@ -71,7 +72,7 @@ func (h *Handlers) UpdateOrganization(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if !(c.Claims.Admin && c.Claims.OrganizationID == req.ID) {
+	if c.Claims.Role != string(user.AdminRole) && c.Claims.OrganizationID == req.ID {
 		return echo.ErrUnauthorized
 	}
 

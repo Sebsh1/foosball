@@ -37,7 +37,7 @@ func AuthenticatedHandlerFactory(logger *logrus.Entry) func(handler Authenticate
 				"user_id": claims.UserID,
 				"org_id":  claims.OrganizationID,
 				"name":    claims.Name,
-				"admin":   claims.Admin,
+				"role":    claims.Role,
 			})
 
 			return handler(AuthenticatedContext{

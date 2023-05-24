@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"foosball/internal/authentication"
-	"foosball/internal/connectors/mysql"
 	"foosball/internal/invite"
 	"foosball/internal/match"
 	"foosball/internal/organization"
 	"foosball/internal/rating"
 	"foosball/internal/rest"
 	"foosball/internal/user"
+	"foosball/pkg/connectors/database"
 	"os"
 	"os/signal"
 	"reflect"
@@ -49,7 +49,7 @@ func main() {
 	log := getLogger(config.LogLevel)
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", config.DBUser, config.DBPass, config.DBHost, config.DBPort, config.DBName)
-	db, err := mysql.NewClient(ctx, dsn)
+	db, err := database.NewClient(ctx, dsn)
 	if err != nil {
 		log.WithError(err).Fatal("failed to connect to database")
 	}
@@ -67,7 +67,8 @@ func main() {
 	userReposotory := user.NewRepository(db)
 	userService := user.NewService(userReposotory)
 
-	ratingService := rating.NewService(userService)
+	ratingRepository := rating.NewRepository(db)
+	ratingService := rating.NewService(ratingRepository)
 
 	organizationRepository := organization.NewRepository(db)
 	organizationService := organization.NewService(organizationRepository)

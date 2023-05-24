@@ -79,7 +79,7 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 		return echo.ErrBadRequest
 	}
 
-	if !(c.Claims.Admin && req.OrgId == c.Claims.OrganizationID) || req.UserId == c.Claims.UserID {
+	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID || req.UserId == c.Claims.UserID {
 		return echo.ErrUnauthorized
 	}
 
@@ -94,7 +94,7 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 		return echo.ErrBadRequest
 	}
 
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, 0, false); err != nil {
+	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, nil, user.NoRole); err != nil {
 		h.logger.WithError(err).Error("failed to remove user from organization")
 		return echo.ErrInternalServerError
 	}
@@ -115,7 +115,7 @@ func (h *Handlers) SetUserAsAdmin(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if !(c.Claims.Admin && req.OrgId == c.Claims.OrganizationID) {
+	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID {
 		return echo.ErrUnauthorized
 	}
 
@@ -130,7 +130,7 @@ func (h *Handlers) SetUserAsAdmin(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, *u.OrganizationID, true); err != nil {
+	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, user.AdminRole); err != nil {
 		h.logger.WithError(err).Error("failed to set user as admin")
 		return echo.ErrInternalServerError
 	}
@@ -151,7 +151,7 @@ func (h *Handlers) RemoveAdminFromUser(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if !(c.Claims.Admin && req.OrgId == c.Claims.OrganizationID) {
+	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID {
 		return echo.ErrUnauthorized
 	}
 
@@ -166,7 +166,7 @@ func (h *Handlers) RemoveAdminFromUser(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, *u.OrganizationID, false); err != nil {
+	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, user.NoRole); err != nil {
 		h.logger.WithError(err).Error("failed to remove admin from user")
 		return echo.ErrInternalServerError
 	}
