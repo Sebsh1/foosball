@@ -15,10 +15,9 @@ I currently have a frontend in its infancy as I try to learn react. :)
 Run <code>go run main.go serve</code> to start the service with the config defined in <code>config.yaml</code>.
 
 ### TODO by priority
-- Seperate auth conditions into middlewares
-- Stats collection (win/loss ratio, total matches, most common teammate, etc.)
 - TopX lists (rating, win/loss ratio, total matches, etc.)
 - New rating methods: Glicko2 & more?
-- Organizing and managing tournaments  
+- Organizing and managing tournaments 
+- Organizing and managing leagues (maybe just a subset of tournaments if supporting round-robin tournaments) 
 - API Docs
 - a frontend :)
