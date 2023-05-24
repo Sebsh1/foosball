@@ -8,6 +8,7 @@ import (
 	"foosball/internal/rating"
 	"foosball/internal/rest/handlers"
 	"foosball/internal/rest/middleware"
+	"foosball/internal/statistic"
 	"foosball/internal/user"
 
 	"github.com/labstack/echo/v4"
@@ -22,6 +23,7 @@ type Handlers struct {
 	inviteService       invite.Service
 	matchService        match.Service
 	ratingService       rating.Service
+	statisticService    statistic.Service
 }
 
 func Register(
@@ -33,6 +35,7 @@ func Register(
 	inviteService invite.Service,
 	matchService match.Service,
 	ratingService rating.Service,
+	statisticService statistic.Service,
 ) {
 	h := &Handlers{
 		logger:              logger,
@@ -42,6 +45,7 @@ func Register(
 		inviteService:       inviteService,
 		matchService:        matchService,
 		ratingService:       ratingService,
+		statisticService:    statisticService,
 	}
 
 	authHandler := handlers.AuthenticatedHandlerFactory(logger)

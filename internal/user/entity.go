@@ -3,7 +3,7 @@ package user
 import (
 	"foosball/internal/organization"
 	"foosball/internal/rating"
-	"foosball/internal/statistics"
+	"foosball/internal/statistic"
 	"time"
 )
 
@@ -30,7 +30,7 @@ type User struct {
 	Rating   rating.Rating
 
 	StatisticsID uint
-	Statistics   statistics.Statistics
+	Statistics   statistic.Statistic
 
 	CreatedAt time.Time
 }

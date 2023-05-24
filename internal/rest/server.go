@@ -10,6 +10,7 @@ import (
 	"foosball/internal/rating"
 	"foosball/internal/rest/controllers"
 	"foosball/internal/rest/helpers"
+	"foosball/internal/statistic"
 	"foosball/internal/user"
 
 	"github.com/labstack/echo/v4"
@@ -36,6 +37,7 @@ func NewServer(
 	inviteService invite.Service,
 	matchService match.Service,
 	ratingService rating.Service,
+	statisticService statistic.Service,
 ) (*Server, error) {
 	e := echo.New()
 
@@ -65,6 +67,7 @@ func NewServer(
 		inviteService,
 		matchService,
 		ratingService,
+		statisticService,
 	)
 
 	return &Server{

@@ -9,6 +9,7 @@ import (
 	"foosball/internal/organization"
 	"foosball/internal/rating"
 	"foosball/internal/rest"
+	"foosball/internal/statistic"
 	"foosball/internal/user"
 	"foosball/pkg/connectors/database"
 	"os"
@@ -70,6 +71,9 @@ func main() {
 	ratingRepository := rating.NewRepository(db)
 	ratingService := rating.NewService(ratingRepository)
 
+	statisticRepository := statistic.NewRepository(db)
+	statisticService := statistic.NewService(statisticRepository)
+
 	organizationRepository := organization.NewRepository(db)
 	organizationService := organization.NewService(organizationRepository)
 
@@ -90,6 +94,7 @@ func main() {
 		inviteService,
 		matchService,
 		ratingService,
+		statisticService,
 	)
 	if err != nil {
 		log.WithError(err).Fatal("failed to create http server")
