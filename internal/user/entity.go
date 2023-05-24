@@ -26,8 +26,11 @@ type User struct {
 	Organization   organization.Organization
 	Role           Role
 
-	Rating     rating.Rating
-	Statistics statistics.Statistics
+	RatingID uint
+	Rating   rating.Rating
+
+	StatisticsID uint
+	Statistics   statistics.Statistics
 
 	CreatedAt time.Time
 }
