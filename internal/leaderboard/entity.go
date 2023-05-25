@@ -12,13 +12,12 @@ const (
 )
 
 type Placement struct {
-	Position int
-	Value    float64
-	UserID   uint
-	Name     string
+	Value  float64 `json:"value"`
+	UserID uint    `json:"user_id"`
+	Name   string  `json:"name"`
 }
 
 type Leaderboard struct {
-	Type       LeaderboardType
-	Placements []Placement
+	Type       LeaderboardType `json:"type"`
+	Placements []Placement     `json:"placements"`
 }

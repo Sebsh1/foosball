@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"foosball/internal/authentication"
 	"foosball/internal/invite"
+	"foosball/internal/leaderboard"
 	"foosball/internal/match"
 	"foosball/internal/organization"
 	"foosball/internal/rating"
@@ -38,6 +39,7 @@ func NewServer(
 	matchService match.Service,
 	ratingService rating.Service,
 	statisticService statistic.Service,
+	leaderboardService leaderboard.Service,
 ) (*Server, error) {
 	e := echo.New()
 
@@ -68,6 +70,7 @@ func NewServer(
 		matchService,
 		ratingService,
 		statisticService,
+		leaderboardService,
 	)
 
 	return &Server{

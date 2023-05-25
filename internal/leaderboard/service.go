@@ -10,7 +10,7 @@ import (
 )
 
 type Service interface {
-	GetLeaderboard(ctx context.Context, leaderboardType LeaderboardType, topX int) (*Leaderboard, error)
+	GetLeaderboard(ctx context.Context, organizationID uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error)
 }
 
 type ServiceImpl struct {
@@ -27,7 +27,7 @@ func NewService(userService user.Service, ratingService rating.Service, statisti
 	}
 }
 
-func (s *ServiceImpl) GetLeaderboard(ctx context.Context, leaderboardType LeaderboardType, topX int) (*Leaderboard, error) {
+func (s *ServiceImpl) GetLeaderboard(ctx context.Context, organizationID uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error) {
 	var userIDs []uint
 	var values []float64
 
@@ -92,10 +92,9 @@ func (s *ServiceImpl) GetLeaderboard(ctx context.Context, leaderboardType Leader
 	placements := make([]Placement, len(users))
 	for i, u := range users {
 		placements[i] = Placement{
-			Position: i + 1,
-			Value:    values[i],
-			UserID:   u.ID,
-			Name:     u.Name,
+			Value:  values[i],
+			UserID: u.ID,
+			Name:   u.Name,
 		}
 	}
 
