@@ -9,6 +9,7 @@ import (
 type Repository interface {
 	GetRatingByUserID(ctx context.Context, userID uint) (*Rating, error)
 	GetRatingsByUserIDs(ctx context.Context, userIDs []uint) ([]Rating, error)
+	GetTopXUserIDsByRating(ctx context.Context, topX int) (userIDs []uint, ratings []int, err error)
 	UpdateRatings(ctx context.Context, ratings []Rating) error
 }
 
@@ -38,6 +39,18 @@ func (r *RepositoryImpl) GetRatingsByUserIDs(ctx context.Context, userIDs []uint
 	}
 
 	return ratings, nil
+}
+
+func (r *RepositoryImpl) GetTopXUserIDsByRating(ctx context.Context, topX int) ([]uint, []int, error) {
+	var userIDs []uint
+	var ratings []int
+
+	err := r.db.WithContext(ctx).Model(&Rating{}).Order("rating desc").Limit(topX).Pluck("user_id", &userIDs).Pluck("rating", &ratings).Error
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return userIDs, ratings, nil
 }
 
 func (r *RepositoryImpl) UpdateRatings(ctx context.Context, ratings []Rating) error {
