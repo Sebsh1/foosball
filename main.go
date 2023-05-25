@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"foosball/internal/authentication"
 	"foosball/internal/invite"
+	"foosball/internal/leaderboard"
 	"foosball/internal/match"
 	"foosball/internal/organization"
 	"foosball/internal/rating"
@@ -85,6 +86,8 @@ func main() {
 	matchRepo := match.NewRepository(db)
 	matchService := match.NewService(matchRepo)
 
+	leaderboardService := leaderboard.NewService(userService, ratingService, statisticService)
+
 	httpServer, err := rest.NewServer(
 		config.Port,
 		log,
@@ -95,6 +98,7 @@ func main() {
 		matchService,
 		ratingService,
 		statisticService,
+		leaderboardService,
 	)
 	if err != nil {
 		log.WithError(err).Fatal("failed to create http server")
