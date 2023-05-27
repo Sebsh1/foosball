@@ -129,7 +129,10 @@ func main() {
 }
 
 func initConfig() {
+	viper.AddConfigPath(".")
 	viper.AddConfigPath("ENV")
+	viper.SetConfigType("env")
+	viper.SetConfigName("config")
 	if err := viper.ReadInConfig(); err != nil {
 		logrus.WithError(err).Fatal("failed to read config")
 	}
