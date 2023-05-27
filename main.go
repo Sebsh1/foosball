@@ -12,7 +12,7 @@ import (
 	"matchlog/internal/rest"
 	"matchlog/internal/statistic"
 	"matchlog/internal/user"
-	"matchlog/pkg/connectors/database"
+	"matchlog/pkg/database"
 	"os"
 	"os/signal"
 	"reflect"
