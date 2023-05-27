@@ -1,3 +1,9 @@
+.idea/
+.vscode/
+.env
+data/
+keys/
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
