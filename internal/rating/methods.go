@@ -39,14 +39,14 @@ func (s *ServiceImpl) getNewRatings(winnersRating, losersRating float64, winners
 	newRatingWinners := make([]Rating, len(winners))
 	probabilityWinA := 1 / (1 + math.Pow(10, (winnersRating-losersRating)/scaleFactor))
 	for i, r := range winners {
-		r.Rating = r.Rating + int(kFactor*(1-probabilityWinA))
+		r.Value = r.Value + int(kFactor*(1-probabilityWinA))
 		newRatingWinners[i] = r
 	}
 
 	newRatingLosers := make([]Rating, len(losers))
 	probabilityWinB := 1 / (1 + math.Pow(10, (losersRating-winnersRating)/scaleFactor))
 	for i, r := range losers {
-		r.Rating = r.Rating + int(kFactor*(-probabilityWinB))
+		r.Value = r.Value + int(kFactor*(-probabilityWinB))
 		newRatingLosers[i] = r
 	}
 
@@ -57,7 +57,7 @@ func (s *ServiceImpl) getNewRatings(winnersRating, losersRating float64, winners
 func (s *ServiceImpl) getAverageRating(ratings []Rating) float64 {
 	sum := 0
 	for _, u := range ratings {
-		sum += u.Rating
+		sum += u.Value
 	}
 
 	return float64(sum) / float64(len(ratings))
@@ -67,7 +67,7 @@ func (s *ServiceImpl) getRMSRating(ratings []Rating) float64 {
 	n := 15.0
 	sum := 0.0
 	for _, u := range ratings {
-		sum += math.Pow(float64(u.Rating), n)
+		sum += math.Pow(float64(u.Value), n)
 	}
 
 	return math.Pow(sum, 1/n) / float64(len(ratings))

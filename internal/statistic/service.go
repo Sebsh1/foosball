@@ -6,12 +6,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Measure string
+
+const (
+	MeasureWins          Measure = "wins"
+	MeasureWinStreak     Measure = "win-streak"
+	MeasureLossStreak    Measure = "loss-streak"
+	MeasureWinLossRatio  Measure = "win-loss-ratio"
+	MeasureMatchesPlayed Measure = "matches-played"
+)
+
 type Service interface {
-	GetTopXUserIDsByWins(ctx context.Context, topX int) (userIDs []uint, wins []int, err error)
-	GetTopXUserIDsByWinStreak(ctx context.Context, topX int) (userIDs []uint, winStreaks []int, err error)
-	GetTopXUserIDsByLossStreak(ctx context.Context, topX int) (userIDs []uint, lossStreaks []int, err error)
-	GetTopXUserIDsByWinLossRatio(ctx context.Context, topX int) (userIDs []uint, winLossRatios []float64, err error)
-	GetTopXUserIDsByMatchesPlayed(ctx context.Context, topX int) (userIDs []uint, matchesPlayed []int, err error)
+	GetTopXAmongUserIDsByMeasure(ctx context.Context, topX int, usersIDs []uint, measure Measure) (userIDs []uint, values []float64, err error)
 	UpdateStatisticsByUserIDs(ctx context.Context, userIDs []uint, result MatchResult) error
 }
 
@@ -25,49 +31,54 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) GetTopXUserIDsByWins(ctx context.Context, topX int) ([]uint, []int, error) {
-	userIDs, wins, err := s.repo.GetTopXUserIDsByWins(ctx, topX)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to get top %d userIDs by wins", topX)
+func (s *ServiceImpl) GetTopXAmongUserIDsByMeasure(ctx context.Context, topX int, userIDs []uint, measure Measure) ([]uint, []float64, error) {
+	var topXUserIDs []uint
+	var values []float64
+
+	switch measure {
+	case MeasureWins:
+		ids, wins, err := s.repo.GetTopXAmongUserIDsByWins(ctx, topX, userIDs)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "failed to get top %d users by wins", topX)
+		}
+
+		topXUserIDs = ids
+		values = s.convertIntsToFloat64s(wins)
+	case MeasureWinStreak:
+		ids, winStreaks, err := s.repo.GetTopXAmongUserIDsByWinStreaks(ctx, topX, userIDs)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "failed to get top %d users by win streaks", topX)
+		}
+
+		topXUserIDs = ids
+		values = s.convertIntsToFloat64s(winStreaks)
+	case MeasureLossStreak:
+		ids, lossStreaks, err := s.repo.GetTopXAmongUserIDsByLossStreaks(ctx, topX, userIDs)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "failed to get top %d users by loss streaks", topX)
+		}
+
+		topXUserIDs = ids
+		values = s.convertIntsToFloat64s(lossStreaks)
+	case MeasureWinLossRatio:
+		ids, winLossRatios, err := s.repo.GetTopXAmongUserIDsByWinLossRatios(ctx, topX, userIDs)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "failed to get top %d users by win loss ratio", topX)
+		}
+
+		topXUserIDs = ids
+		values = winLossRatios
+	case MeasureMatchesPlayed:
+		ids, matchesPlayed, err := s.repo.GetTopXAmongUserIDsByMatchesPlayed(ctx, topX, userIDs)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "failed to get top %d users by matches played", topX)
+		}
+
+		topXUserIDs = ids
+		values = s.convertIntsToFloat64s(matchesPlayed)
 	}
 
-	return userIDs, wins, nil
-}
-
-func (s *ServiceImpl) GetTopXUserIDsByWinStreak(ctx context.Context, topX int) ([]uint, []int, error) {
-	userIDs, winStreaks, err := s.repo.GetTopXUserIDsByWinStreaks(ctx, topX)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to get top %d userIDs by win streaks", topX)
-	}
-
-	return userIDs, winStreaks, nil
-}
-
-func (s *ServiceImpl) GetTopXUserIDsByLossStreak(ctx context.Context, topX int) ([]uint, []int, error) {
-	userIDs, lossStreaks, err := s.repo.GetTopXUserIDsByLossStreaks(ctx, topX)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to get top %d userIDs by loss streaks", topX)
-	}
-
-	return userIDs, lossStreaks, nil
-}
-
-func (s *ServiceImpl) GetTopXUserIDsByWinLossRatio(ctx context.Context, topX int) ([]uint, []float64, error) {
-	userIDs, winLossRatios, err := s.repo.GetTopXUserIDsByWinLossRatios(ctx, topX)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to get top %d userIDs by win loss ratio", topX)
-	}
-
-	return userIDs, winLossRatios, nil
-}
-
-func (s *ServiceImpl) GetTopXUserIDsByMatchesPlayed(ctx context.Context, topX int) ([]uint, []int, error) {
-	userIDs, matchesPlayed, err := s.repo.GetTopXUserIDsByMatchesPlayed(ctx, topX)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to get top %d userIDs by matches played", topX)
-	}
-
-	return userIDs, matchesPlayed, nil
+	return topXUserIDs, values, nil
 }
 
 func (s *ServiceImpl) UpdateStatisticsByUserIDs(ctx context.Context, userIDs []uint, result MatchResult) error {
@@ -107,4 +118,12 @@ func (s *ServiceImpl) UpdateStatisticsByUserIDs(ctx context.Context, userIDs []u
 	}
 
 	return nil
+}
+
+func (s *ServiceImpl) convertIntsToFloat64s(ints []int) []float64 {
+	floats := make([]float64, len(ints))
+	for i, v := range ints {
+		floats[i] = float64(v)
+	}
+	return floats
 }

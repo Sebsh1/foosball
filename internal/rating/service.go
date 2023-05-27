@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	GetTopXUserIDsByRating(ctx context.Context, topX int) (userIDs []uint, ratings []int, err error)
+	GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, ratings []int, err error)
 	UpdateRatings(ctx context.Context, method Method, draw bool, winners, losers []uint) error
 }
 
@@ -23,10 +23,10 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) GetTopXUserIDsByRating(ctx context.Context, topX int) ([]uint, []int, error) {
-	userIDs, ratings, err := s.repo.GetTopXUserIDsByRating(ctx, topX)
+func (s *ServiceImpl) GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) ([]uint, []int, error) {
+	userIDs, ratings, err := s.repo.GetTopXAmongUserIDsByRating(ctx, topX, userIDs)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to get top x user ids by rating")
+		return nil, nil, errors.Wrapf(err, "failed to get top %d user ids by rating", topX)
 	}
 
 	return userIDs, ratings, nil

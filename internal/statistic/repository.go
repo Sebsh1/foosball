@@ -8,11 +8,11 @@ import (
 
 type Repository interface {
 	GetStatisticByUserID(ctx context.Context, userID uint) (*Statistic, error)
-	GetTopXUserIDsByWins(ctx context.Context, topX int) (userIDs []uint, wins []int, err error)
-	GetTopXUserIDsByWinStreaks(ctx context.Context, topX int) (userIDs []uint, winStreaks []int, err error)
-	GetTopXUserIDsByLossStreaks(ctx context.Context, topX int) (userIDs []uint, lossStreaks []int, err error)
-	GetTopXUserIDsByWinLossRatios(ctx context.Context, topX int) (userIDs []uint, winLossRatios []float64, err error)
-	GetTopXUserIDsByMatchesPlayed(ctx context.Context, topX int) (userIDs []uint, matchesPlayed []int, err error)
+	GetTopXAmongUserIDsByWins(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, wins []int, err error)
+	GetTopXAmongUserIDsByWinStreaks(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, winStreaks []int, err error)
+	GetTopXAmongUserIDsByLossStreaks(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, lossStreaks []int, err error)
+	GetTopXAmongUserIDsByWinLossRatios(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, winLossRatios []float64, err error)
+	GetTopXAmongUserIDsByMatchesPlayed(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, matchesPlayed []int, err error)
 	UpdateStatistics(ctx context.Context, stats []Statistic) error
 }
 
@@ -28,71 +28,105 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *RepositoryImpl) GetStatisticByUserID(ctx context.Context, userID uint) (*Statistic, error) {
 	var stats Statistic
-	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&stats).Error; err != nil {
+	err := r.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		First(&stats).Error
+	if err != nil {
 		return nil, err
 	}
 
 	return &stats, nil
 }
 
-func (r *RepositoryImpl) GetTopXUserIDsByWins(ctx context.Context, topX int) ([]uint, []int, error) {
-	var userIDs []uint
+func (r *RepositoryImpl) GetTopXAmongUserIDsByWins(ctx context.Context, topX int, userIDs []uint) ([]uint, []int, error) {
+	var topXUserIDs []uint
 	var wins []int
 
-	err := r.db.WithContext(ctx).Model(&Statistic{}).Order("wins desc").Limit(topX).Pluck("user_id", &userIDs).Pluck("wins", &wins).Error
+	err := r.db.
+		WithContext(ctx).
+		Model(&Statistic{}).
+		Order("wins desc").
+		Limit(topX).
+		Pluck("user_id", &topXUserIDs).
+		Pluck("wins", &wins).
+		Where("user_id IN ?", userIDs).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return userIDs, wins, nil
+	return topXUserIDs, wins, nil
 }
 
-func (r *RepositoryImpl) GetTopXUserIDsByWinStreaks(ctx context.Context, topX int) ([]uint, []int, error) {
-	var userIDs []uint
+func (r *RepositoryImpl) GetTopXAmongUserIDsByWinStreaks(ctx context.Context, topX int, userIDs []uint) ([]uint, []int, error) {
+	var topXUserIDs []uint
 	var winStreaks []int
 
-	err := r.db.WithContext(ctx).Model(&Statistic{}).Order("win_streak desc").Limit(topX).Pluck("user_id", &userIDs).Pluck("win_streak", &winStreaks).Error
+	err := r.db.WithContext(ctx).
+		Model(&Statistic{}).
+		Order("win_streak desc").
+		Limit(topX).
+		Pluck("user_id", &topXUserIDs).
+		Pluck("win_streak", &winStreaks).
+		Where("user_id IN ?", userIDs).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return userIDs, winStreaks, nil
+	return topXUserIDs, winStreaks, nil
 }
 
-func (r *RepositoryImpl) GetTopXUserIDsByLossStreaks(ctx context.Context, topX int) ([]uint, []int, error) {
-	var userIDs []uint
+func (r *RepositoryImpl) GetTopXAmongUserIDsByLossStreaks(ctx context.Context, topX int, userIDs []uint) ([]uint, []int, error) {
+	var topXUserIDs []uint
 	var lossStreaks []int
 
-	err := r.db.WithContext(ctx).Model(&Statistic{}).Order("loss_streak desc").Limit(topX).Pluck("user_id", &userIDs).Pluck("loss_streak", &lossStreaks).Error
+	err := r.db.WithContext(ctx).
+		Model(&Statistic{}).
+		Order("loss_streak desc").
+		Limit(topX).
+		Pluck("user_id", &topXUserIDs).
+		Pluck("loss_streak", &lossStreaks).
+		Where("user_id IN ?", userIDs).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return userIDs, lossStreaks, nil
+	return topXUserIDs, lossStreaks, nil
 }
 
-func (r *RepositoryImpl) GetTopXUserIDsByWinLossRatios(ctx context.Context, topX int) ([]uint, []float64, error) {
-	var userIDs []uint
+func (r *RepositoryImpl) GetTopXAmongUserIDsByWinLossRatios(ctx context.Context, topX int, userIDs []uint) ([]uint, []float64, error) {
+	var topXUserIDs []uint
 	var winLossRatios []float64
 
-	err := r.db.WithContext(ctx).Model(&Statistic{}).Order("win_loss_ratio desc").Limit(topX).Pluck("user_id", &userIDs).Pluck("win_loss_ratio", &winLossRatios).Error
+	err := r.db.WithContext(ctx).
+		Model(&Statistic{}).
+		Order("win_loss_ratio desc").
+		Limit(topX).
+		Pluck("user_id", &topXUserIDs).
+		Pluck("win_loss_ratio", &winLossRatios).
+		Where("user_id IN ?", userIDs).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return userIDs, winLossRatios, nil
+	return topXUserIDs, winLossRatios, nil
 }
 
-func (r *RepositoryImpl) GetTopXUserIDsByMatchesPlayed(ctx context.Context, topX int) ([]uint, []int, error) {
-	var userIDs []uint
+func (r *RepositoryImpl) GetTopXAmongUserIDsByMatchesPlayed(ctx context.Context, topX int, userIDs []uint) ([]uint, []int, error) {
+	var topXUserIDs []uint
 	var matchesPlayed []int
 
-	err := r.db.WithContext(ctx).Model(&Statistic{}).Order("matches_played desc").Limit(topX).Pluck("user_id", &userIDs).Pluck("matches_played", &matchesPlayed).Error
+	err := r.db.WithContext(ctx).
+		Model(&Statistic{}).
+		Order("matches_played desc").
+		Limit(topX).
+		Pluck("user_id", &topXUserIDs).
+		Pluck("matches_played", &matchesPlayed).
+		Where("user_id IN ?", userIDs).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return userIDs, matchesPlayed, nil
+	return topXUserIDs, matchesPlayed, nil
 }
 
 func (r *RepositoryImpl) UpdateStatistics(ctx context.Context, stats []Statistic) error {
