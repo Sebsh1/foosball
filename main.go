@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"foosball/internal/authentication"
 	"foosball/internal/invite"
+	"foosball/internal/leaderboard"
 	"foosball/internal/match"
 	"foosball/internal/organization"
 	"foosball/internal/rating"
@@ -85,6 +86,8 @@ func main() {
 	matchRepo := match.NewRepository(db)
 	matchService := match.NewService(matchRepo)
 
+	leaderboardService := leaderboard.NewService(userService, ratingService, statisticService)
+
 	httpServer, err := rest.NewServer(
 		config.Port,
 		log,
@@ -95,6 +98,7 @@ func main() {
 		matchService,
 		ratingService,
 		statisticService,
+		leaderboardService,
 	)
 	if err != nil {
 		log.WithError(err).Fatal("failed to create http server")
@@ -126,7 +130,9 @@ func main() {
 
 func initConfig() {
 	viper.AddConfigPath("ENV")
-	viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		logrus.WithError(err).Fatal("failed to read config")
+	}
 	viper.AutomaticEnv()
 }
 
@@ -182,7 +188,9 @@ func bindEnvs(iface interface{}, parts ...string) {
 		case reflect.Struct:
 			bindEnvs(fieldv.Interface(), parts...)
 		default:
-			viper.BindEnv(strings.Join(parts, "."))
+			if err := viper.BindEnv(strings.Join(parts, ".")); err != nil {
+				logrus.WithError(err).Fatalf("failed to bind env for %s", strings.Join(parts, "."))
+			}
 		}
 	}
 }

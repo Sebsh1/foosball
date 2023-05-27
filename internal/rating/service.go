@@ -9,6 +9,7 @@ import (
 )
 
 type Service interface {
+	GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, ratings []int, err error)
 	UpdateRatings(ctx context.Context, method Method, draw bool, winners, losers []uint) error
 }
 
@@ -20,6 +21,15 @@ func NewService(repo Repository) Service {
 	return &ServiceImpl{
 		repo: repo,
 	}
+}
+
+func (s *ServiceImpl) GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) ([]uint, []int, error) {
+	userIDs, ratings, err := s.repo.GetTopXAmongUserIDsByRating(ctx, topX, userIDs)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "failed to get top %d user ids by rating", topX)
+	}
+
+	return userIDs, ratings, nil
 }
 
 func (s *ServiceImpl) UpdateRatings(ctx context.Context, method Method, draw bool, winners, losers []uint) error {
@@ -37,7 +47,7 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, method Method, draw boo
 		return errors.Wrap(err, "failed to get loser users")
 	}
 
-	updatedRatings := make([]Rating, len(winners)+len(losers))
+	var updatedRatings []Rating
 
 	switch method {
 	case Elo:

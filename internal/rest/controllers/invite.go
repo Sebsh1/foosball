@@ -35,7 +35,11 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 		return echo.ErrInternalServerError
 	}
 
-	return c.JSON(http.StatusOK, invites)
+	resp := getUserInvitesResponse{
+		Invites: invites,
+	}
+
+	return c.JSON(http.StatusOK, resp)
 }
 
 func (h *Handlers) DeclineInvite(c handlers.AuthenticatedContext) error {

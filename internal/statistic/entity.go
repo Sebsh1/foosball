@@ -13,9 +13,12 @@ const (
 type Statistic struct {
 	ID uint
 
-	Wins   int
-	Losses int
-	Draws  int
+	Wins          int
+	Losses        int
+	Draws         int
+	MatchesPlayed int
+
+	WinLossRatio float64
 
 	WinStreak  int
 	LossStreak int

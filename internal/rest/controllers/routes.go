@@ -3,6 +3,7 @@ package controllers
 import (
 	"foosball/internal/authentication"
 	"foosball/internal/invite"
+	"foosball/internal/leaderboard"
 	"foosball/internal/match"
 	"foosball/internal/organization"
 	"foosball/internal/rating"
@@ -24,6 +25,7 @@ type Handlers struct {
 	matchService        match.Service
 	ratingService       rating.Service
 	statisticService    statistic.Service
+	leaderboardService  leaderboard.Service
 }
 
 func Register(
@@ -36,6 +38,7 @@ func Register(
 	matchService match.Service,
 	ratingService rating.Service,
 	statisticService statistic.Service,
+	leaderboardService leaderboard.Service,
 ) {
 	h := &Handlers{
 		logger:              logger,
@@ -46,6 +49,7 @@ func Register(
 		matchService:        matchService,
 		ratingService:       ratingService,
 		statisticService:    statisticService,
+		leaderboardService:  leaderboardService,
 	}
 
 	authHandler := handlers.AuthenticatedHandlerFactory(logger)
@@ -80,4 +84,7 @@ func Register(
 	// Matches
 	matchGroup := e.Group("/match", authGuard)
 	matchGroup.POST("", authHandler(h.PostMatch), orginizationGuard)
+
+	// Leaderboard
+	e.GET("/leaderboard/:orgId/:topX/:leaderboardType", authHandler(h.GetLeaderboard), orginizationGuard) // TODO leaderboard methods need to limit to within organization
 }

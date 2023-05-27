@@ -9,6 +9,7 @@ import (
 type Repository interface {
 	GetRatingByUserID(ctx context.Context, userID uint) (*Rating, error)
 	GetRatingsByUserIDs(ctx context.Context, userIDs []uint) ([]Rating, error)
+	GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, ratings []int, err error)
 	UpdateRatings(ctx context.Context, ratings []Rating) error
 }
 
@@ -22,8 +23,8 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *RepositoryImpl) GetRatingByUserID(ctx context.Context, userID uint) (*Rating, error) {
 	var rating Rating
-	err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&rating).Error
-	if err != nil {
+
+	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&rating).Error; err != nil {
 		return nil, err
 	}
 
@@ -32,12 +33,29 @@ func (r *RepositoryImpl) GetRatingByUserID(ctx context.Context, userID uint) (*R
 
 func (r *RepositoryImpl) GetRatingsByUserIDs(ctx context.Context, userIDs []uint) ([]Rating, error) {
 	var ratings []Rating
-	err := r.db.WithContext(ctx).Where("user_id IN ?", userIDs).Find(&ratings).Error
-	if err != nil {
+	if err := r.db.WithContext(ctx).Where("user_id IN ?", userIDs).Find(&ratings).Error; err != nil {
 		return nil, err
 	}
 
 	return ratings, nil
+}
+
+func (r *RepositoryImpl) GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) ([]uint, []int, error) {
+	var topXUserIDs []uint
+	var ratings []int
+
+	err := r.db.WithContext(ctx).
+		Model(&Rating{}).
+		Order("rating desc").
+		Limit(topX).
+		Pluck("user_id", &topXUserIDs).
+		Pluck("value", &ratings).
+		Where("user_id IN ?", userIDs).Error
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return topXUserIDs, ratings, nil
 }
 
 func (r *RepositoryImpl) UpdateRatings(ctx context.Context, ratings []Rating) error {
