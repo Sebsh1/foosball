@@ -130,7 +130,9 @@ func main() {
 
 func initConfig() {
 	viper.AddConfigPath("ENV")
-	viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		logrus.WithError(err).Fatal("failed to read config")
+	}
 	viper.AutomaticEnv()
 }
 
@@ -186,7 +188,9 @@ func bindEnvs(iface interface{}, parts ...string) {
 		case reflect.Struct:
 			bindEnvs(fieldv.Interface(), parts...)
 		default:
-			viper.BindEnv(strings.Join(parts, "."))
+			if err := viper.BindEnv(strings.Join(parts, ".")); err != nil {
+				logrus.WithError(err).Fatalf("failed to bind env for %s", strings.Join(parts, "."))
+			}
 		}
 	}
 }

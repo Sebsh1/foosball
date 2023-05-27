@@ -47,7 +47,7 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, method Method, draw boo
 		return errors.Wrap(err, "failed to get loser users")
 	}
 
-	updatedRatings := make([]Rating, len(winners)+len(losers))
+	var updatedRatings []Rating
 
 	switch method {
 	case Elo:
