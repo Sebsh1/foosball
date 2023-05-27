@@ -1,8 +1,8 @@
 package tournament
 
 import (
-	"foosball/internal/match"
-	"foosball/internal/user"
+	"matchlog/internal/match"
+	"matchlog/internal/user"
 	"time"
 
 	"gorm.io/datatypes"

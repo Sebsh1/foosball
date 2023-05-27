@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"foosball/internal/match"
-	"foosball/internal/organization"
-	"foosball/internal/rating"
-	"foosball/internal/rest/handlers"
-	"foosball/internal/rest/helpers"
-	"foosball/internal/statistic"
+	"matchlog/internal/match"
+	"matchlog/internal/organization"
+	"matchlog/internal/rating"
+	"matchlog/internal/rest/handlers"
+	"matchlog/internal/rest/helpers"
+	"matchlog/internal/statistic"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"foosball/internal/authentication"
+	"matchlog/internal/authentication"
 	"strings"
 
 	"github.com/labstack/echo/v4"

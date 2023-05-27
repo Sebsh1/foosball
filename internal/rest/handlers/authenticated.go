@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"foosball/internal/authentication"
+	"matchlog/internal/authentication"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"

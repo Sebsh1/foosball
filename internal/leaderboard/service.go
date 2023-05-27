@@ -2,9 +2,9 @@ package leaderboard
 
 import (
 	"context"
-	"foosball/internal/rating"
-	"foosball/internal/statistic"
-	"foosball/internal/user"
+	"matchlog/internal/rating"
+	"matchlog/internal/statistic"
+	"matchlog/internal/user"
 
 	"github.com/pkg/errors"
 )

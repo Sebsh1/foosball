@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
-	"foosball/internal/authentication"
+	"matchlog/internal/authentication"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"

@@ -1,16 +1,16 @@
 package controllers
 
 import (
-	"foosball/internal/authentication"
-	"foosball/internal/invite"
-	"foosball/internal/leaderboard"
-	"foosball/internal/match"
-	"foosball/internal/organization"
-	"foosball/internal/rating"
-	"foosball/internal/rest/handlers"
-	"foosball/internal/rest/middleware"
-	"foosball/internal/statistic"
-	"foosball/internal/user"
+	"matchlog/internal/authentication"
+	"matchlog/internal/invite"
+	"matchlog/internal/leaderboard"
+	"matchlog/internal/match"
+	"matchlog/internal/organization"
+	"matchlog/internal/rating"
+	"matchlog/internal/rest/handlers"
+	"matchlog/internal/rest/middleware"
+	"matchlog/internal/statistic"
+	"matchlog/internal/user"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"

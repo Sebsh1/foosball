@@ -2,8 +2,8 @@ package invite
 
 import (
 	"context"
-	"foosball/internal/organization"
-	"foosball/internal/user"
+	"matchlog/internal/organization"
+	"matchlog/internal/user"
 )
 
 type Service interface {

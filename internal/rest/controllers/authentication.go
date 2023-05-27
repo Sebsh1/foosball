@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"foosball/internal/rest/helpers"
+	"matchlog/internal/rest/helpers"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

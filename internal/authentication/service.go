@@ -3,7 +3,7 @@ package authentication
 
 import (
 	"context"
-	"foosball/internal/user"
+	"matchlog/internal/user"
 	"time"
 
 	"github.com/golang-jwt/jwt"

@@ -1,9 +1,9 @@
 package user
 
 import (
-	"foosball/internal/organization"
-	"foosball/internal/rating"
-	"foosball/internal/statistic"
+	"matchlog/internal/organization"
+	"matchlog/internal/rating"
+	"matchlog/internal/statistic"
 	"time"
 )
 

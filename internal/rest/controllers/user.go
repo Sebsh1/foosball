@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"foosball/internal/rest/handlers"
-	"foosball/internal/rest/helpers"
-	"foosball/internal/user"
+	"matchlog/internal/rest/handlers"
+	"matchlog/internal/rest/helpers"
+	"matchlog/internal/user"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

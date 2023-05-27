@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"foosball/internal/authentication"
-	"foosball/internal/user"
+	"matchlog/internal/authentication"
+	"matchlog/internal/user"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
