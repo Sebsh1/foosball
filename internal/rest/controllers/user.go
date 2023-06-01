@@ -39,7 +39,7 @@ func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error
 	}
 
 	type getUsersInOrgResponse struct {
-		Users []user.User `json:"users"`
+		Users []user.User `json:"users"` // TODO create "user" response object, with name, email, role
 	}
 
 	ctx := c.Request().Context()
@@ -102,10 +102,11 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handlers) SetUserAsAdmin(c handlers.AuthenticatedContext) error {
+func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 	type setUserAsAdminRequest struct {
-		OrgId  uint `param:"orgId" validate:"required,gt=0"`
-		UserId uint `param:"userId" validate:"required,gte=0"`
+		OrgId  uint   `param:"orgId" validate:"required,gt=0"`
+		UserId uint   `param:"userId" validate:"required,gte=0"`
+		Role   string `json:"role" validate:"required,oneof=admin member none"`
 	}
 
 	ctx := c.Request().Context()
@@ -130,44 +131,9 @@ func (h *Handlers) SetUserAsAdmin(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, user.AdminRole); err != nil {
+	role := user.Role(req.Role)
+	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, role); err != nil {
 		h.logger.WithError(err).Error("failed to set user as admin")
-		return echo.ErrInternalServerError
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handlers) RemoveAdminFromUser(c handlers.AuthenticatedContext) error {
-	type removeAdminFromUserRequest struct {
-		OrgId  uint `param:"orgId" validate:"required,gt=0"`
-		UserId uint `param:"userId" validate:"required,gte=0"`
-	}
-
-	ctx := c.Request().Context()
-
-	req, err := helpers.Bind[removeAdminFromUserRequest](c)
-	if err != nil {
-		return echo.ErrBadRequest
-	}
-
-	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID {
-		return echo.ErrUnauthorized
-	}
-
-	users, err := h.userService.GetUsers(ctx, []uint{req.UserId})
-	if err != nil {
-		h.logger.WithError(err).Error("failed to get users")
-		return echo.ErrInternalServerError
-	}
-
-	u := users[0]
-	if *u.OrganizationID != req.OrgId {
-		return echo.ErrBadRequest
-	}
-
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, user.NoRole); err != nil {
-		h.logger.WithError(err).Error("failed to remove admin from user")
 		return echo.ErrInternalServerError
 	}
 

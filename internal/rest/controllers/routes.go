@@ -67,24 +67,17 @@ func Register(
 	userGroup := e.Group("/user", authGuard, userGuard)
 	userGroup.DELETE("/:userId", authHandler(h.DeleteUser))
 	userGroup.GET("/:userId/invites", authHandler(h.GetUserInvites))
-	userGroup.POST("/:userId/invite/:inviteId/accept", authHandler(h.AcceptInvite))
-	userGroup.POST("/:userId/invite/:inviteId/decline", authHandler(h.DeclineInvite))
+	userGroup.POST("/:userId/invite/:inviteId/", authHandler(h.RespondToInvite))
 
 	// Organizations
 	orgGroup := e.Group("/organization", authGuard)
 	orgGroup.GET("/:orgId/users", authHandler(h.GetUsersInOrganization), orginizationGuard)
+	orgGroup.PUT("/:orgId", authHandler(h.UpdateOrganization), orginizationGuard, adminGuard)
 	orgGroup.DELETE("/:orgId", authHandler(h.DeleteOrganization), orginizationGuard, adminGuard)
 	orgGroup.POST("", authHandler(h.CreateOrganization))
-	orgGroup.POST("/:orgId", authHandler(h.UpdateOrganization), orginizationGuard, adminGuard)
-	orgGroup.POST("/:orgId/invite/", authHandler(h.InviteUserToOrganization), orginizationGuard, adminGuard)
-	orgGroup.POST("/:orgId/user/:userId/remove", authHandler(h.RemoveUserFromOrganization), orginizationGuard, adminGuard)
-	orgGroup.POST("/:orgId/user/:userId/admin", authHandler(h.SetUserAsAdmin), orginizationGuard, adminGuard)
-	orgGroup.POST("/:orgId/user/:userId/admin/remove", authHandler(h.RemoveAdminFromUser), orginizationGuard, adminGuard)
-
-	// Matches
-	matchGroup := e.Group("/match", authGuard)
-	matchGroup.POST("", authHandler(h.PostMatch), orginizationGuard)
-
-	// Leaderboard
-	e.GET("/leaderboard/:orgId/:topX/:leaderboardType", authHandler(h.GetLeaderboard), orginizationGuard) // TODO leaderboard methods need to limit to within organization
+	orgGroup.POST("/:orgId/invite/", authHandler(h.InviteUserToOrganization), orginizationGuard, adminGuard) // TODO make this a list of emails isntead of single email
+	orgGroup.DELETE("/:orgId/user/:userId", authHandler(h.RemoveUserFromOrganization), orginizationGuard, adminGuard)
+	orgGroup.PUT("/:orgId/user/:userId", authHandler(h.UpdateUserRole), orginizationGuard, adminGuard)
+	orgGroup.GET("/:orgId/top/:topX/measure/:leaderboardType", authHandler(h.GetLeaderboard), orginizationGuard)
+	orgGroup.POST("/:orgId/match", authHandler(h.PostMatch), orginizationGuard)
 }

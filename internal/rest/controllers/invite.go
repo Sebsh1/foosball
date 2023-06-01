@@ -15,7 +15,7 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 	}
 
 	type getUserInvitesResponse struct {
-		Invites []invite.Invite `json:"invites"`
+		Invites []invite.Invite `json:"invites"` // TODO create "invite" response object
 	}
 
 	ctx := c.Request().Context()
@@ -42,39 +42,11 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (h *Handlers) DeclineInvite(c handlers.AuthenticatedContext) error {
-	type declineInviterequest struct {
-		UserID   uint `param:"userId" validate:"required,gte=0"`
-		InviteID uint `param:"inviteId" validate:"required,gte=0"`
-	}
-
-	ctx := c.Request().Context()
-
-	req, err := helpers.Bind[declineInviterequest](c)
-	if err != nil {
-		return echo.ErrBadRequest
-	}
-
-	if req.UserID != c.Claims.UserID {
-		return echo.ErrUnauthorized
-	}
-
-	if err := h.inviteService.DeclineInvite(ctx, req.InviteID); err != nil {
-		if err == invite.ErrNotFound {
-			return echo.ErrNotFound
-		}
-
-		h.logger.WithError(err).Error("failed to decline invite")
-		return echo.ErrInternalServerError
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handlers) AcceptInvite(c handlers.AuthenticatedContext) error {
+func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 	type acceptInviteRequest struct {
 		UserID   uint `param:"userId" validate:"required,gte=0"`
 		InviteID uint `param:"inviteId" validate:"required,gte=0"`
+		Accepted bool `json:"accepted" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -88,13 +60,24 @@ func (h *Handlers) AcceptInvite(c handlers.AuthenticatedContext) error {
 		return echo.ErrUnauthorized
 	}
 
-	if err := h.inviteService.AcceptInvite(ctx, req.InviteID); err != nil {
-		if err == invite.ErrNotFound {
-			return echo.ErrNotFound
-		}
+	if req.Accepted {
+		if err := h.inviteService.AcceptInvite(ctx, req.InviteID); err != nil {
+			if err == invite.ErrNotFound {
+				return echo.ErrNotFound
+			}
 
-		h.logger.WithError(err).Error("failed to accept invite")
-		return echo.ErrInternalServerError
+			h.logger.WithError(err).Error("failed to accept invite")
+			return echo.ErrInternalServerError
+		}
+	} else {
+		if err := h.inviteService.DeclineInvite(ctx, req.InviteID); err != nil {
+			if err == invite.ErrNotFound {
+				return echo.ErrNotFound
+			}
+
+			h.logger.WithError(err).Error("failed to decline invite")
+			return echo.ErrInternalServerError
+		}
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -102,7 +85,7 @@ func (h *Handlers) AcceptInvite(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) InviteUserToOrganization(c handlers.AuthenticatedContext) error {
 	type inviteUserToOrganizationRequest struct {
-		OrganizationID uint   `json:"orgId" validate:"required,gt=0"`
+		OrganizationID uint   `param:"orgId" validate:"required,gt=0"`
 		Email          string `json:"email" validate:"required"`
 	}
 
