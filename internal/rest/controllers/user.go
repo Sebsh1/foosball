@@ -38,8 +38,15 @@ func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error
 		OrgId uint `json:"orgId" validate:"required,gt=0"`
 	}
 
+	type responseUser struct {
+		ID    uint   `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+		Role  string `json:"role"`
+	}
+
 	type getUsersInOrgResponse struct {
-		Users []user.User `json:"users"` // TODO create "user" response object, with name, email, role
+		Users []responseUser `json:"users"`
 	}
 
 	ctx := c.Request().Context()
@@ -59,8 +66,18 @@ func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error
 		return echo.ErrInternalServerError
 	}
 
+	respUsers := make([]responseUser, len(users))
+	for i, u := range users {
+		respUsers[i] = responseUser{
+			ID:    u.ID,
+			Name:  u.Name,
+			Email: u.Email,
+			Role:  string(u.Role),
+		}
+	}
+
 	reponse := getUsersInOrgResponse{
-		Users: users,
+		Users: respUsers,
 	}
 
 	return c.JSON(http.StatusOK, reponse)

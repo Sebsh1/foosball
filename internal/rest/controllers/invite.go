@@ -14,8 +14,13 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 		ID uint `param:"userId" validate:"required"`
 	}
 
+	type responseInvite struct {
+		OrganizationID uint `json:"organizationId"`
+		UserID         uint `json:"userId"`
+	}
+
 	type getUserInvitesResponse struct {
-		Invites []invite.Invite `json:"invites"` // TODO create "invite" response object
+		Invites []responseInvite `json:"invites"`
 	}
 
 	ctx := c.Request().Context()
@@ -35,8 +40,16 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 		return echo.ErrInternalServerError
 	}
 
+	respInvites := make([]responseInvite, len(invites))
+	for i, invite := range invites {
+		respInvites[i] = responseInvite{
+			OrganizationID: invite.OrganizationID,
+			UserID:         invite.UserID,
+		}
+	}
+
 	resp := getUserInvitesResponse{
-		Invites: invites,
+		Invites: respInvites,
 	}
 
 	return c.JSON(http.StatusOK, resp)
@@ -83,15 +96,15 @@ func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handlers) InviteUserToOrganization(c handlers.AuthenticatedContext) error {
-	type inviteUserToOrganizationRequest struct {
-		OrganizationID uint   `param:"orgId" validate:"required,gt=0"`
-		Email          string `json:"email" validate:"required"`
+func (h *Handlers) InviteUsersToOrganization(c handlers.AuthenticatedContext) error {
+	type inviteUsersToOrganizationRequest struct {
+		OrganizationID uint     `param:"orgId" validate:"required,gt=0"`
+		Emails         []string `json:"emails" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[inviteUserToOrganizationRequest](c)
+	req, err := helpers.Bind[inviteUsersToOrganizationRequest](c)
 	if err != nil {
 		return echo.ErrBadRequest
 	}
@@ -100,18 +113,23 @@ func (h *Handlers) InviteUserToOrganization(c handlers.AuthenticatedContext) err
 		return echo.ErrUnauthorized
 	}
 
-	exists, user, err := h.userService.GetUserByEmail(ctx, req.Email)
-	if err != nil {
-		h.logger.WithError(err).Error("failed to get user by email")
-		return echo.ErrInternalServerError
+	userIDs := make([]uint, len(req.Emails))
+	for _, email := range req.Emails {
+		exists, user, err := h.userService.GetUserByEmail(ctx, email)
+		if err != nil {
+			h.logger.WithError(err).Error("failed to get user by email")
+			return echo.ErrInternalServerError
+		}
+
+		if !exists {
+			return echo.ErrNotFound
+		}
+
+		userIDs = append(userIDs, user.ID)
 	}
 
-	if !exists {
-		return echo.ErrNotFound
-	}
-
-	if err := h.inviteService.CreateInvite(ctx, user.ID, req.OrganizationID); err != nil {
-		h.logger.WithError(err).Error("failed to create invite")
+	if err := h.inviteService.CreateInvites(ctx, userIDs, req.OrganizationID); err != nil {
+		h.logger.WithError(err).Error("failed to create invites")
 		return echo.ErrInternalServerError
 	}
 

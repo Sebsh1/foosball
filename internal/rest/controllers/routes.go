@@ -75,7 +75,7 @@ func Register(
 	orgGroup.PUT("/:orgId", authHandler(h.UpdateOrganization), orginizationGuard, adminGuard)
 	orgGroup.DELETE("/:orgId", authHandler(h.DeleteOrganization), orginizationGuard, adminGuard)
 	orgGroup.POST("", authHandler(h.CreateOrganization))
-	orgGroup.POST("/:orgId/invite/", authHandler(h.InviteUserToOrganization), orginizationGuard, adminGuard) // TODO make this a list of emails isntead of single email
+	orgGroup.POST("/:orgId/invite/", authHandler(h.InviteUsersToOrganization), orginizationGuard, adminGuard)
 	orgGroup.DELETE("/:orgId/user/:userId", authHandler(h.RemoveUserFromOrganization), orginizationGuard, adminGuard)
 	orgGroup.PUT("/:orgId/user/:userId", authHandler(h.UpdateUserRole), orginizationGuard, adminGuard)
 	orgGroup.GET("/:orgId/top/:topX/measure/:leaderboardType", authHandler(h.GetLeaderboard), orginizationGuard)

@@ -32,7 +32,7 @@ func (s *ServiceImpl) calculateNewRatingsRMS(winners, losers []Rating) []Rating 
 }
 
 func (s *ServiceImpl) calculateNewRatingsGlicko2(winners, losers []Rating) []Rating {
-	panic("unimplemented") // TODO
+	return append(winners, losers...) // TODO implement glicko2
 }
 
 func (s *ServiceImpl) getNewRatings(winnersRating, losersRating float64, winners, losers []Rating) []Rating {

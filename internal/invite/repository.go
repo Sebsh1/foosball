@@ -12,7 +12,7 @@ var (
 )
 
 type Repository interface {
-	CreateInvite(ctx context.Context, userID, organizationID uint) error
+	CreateInvites(ctx context.Context, userIDs []uint, organizationID uint) error
 	GetInvite(ctx context.Context, id uint) (*Invite, error)
 	GetInvitesByUserID(ctx context.Context, userID uint) ([]Invite, error)
 	GetInvitesByOrganizationID(ctx context.Context, organizationID uint) ([]Invite, error)
@@ -29,15 +29,20 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-func (r *RepositoryImpl) CreateInvite(ctx context.Context, userID, organizationID uint) error {
-	if err := r.db.WithContext(ctx).Create(&Invite{
-		UserID:         userID,
-		OrganizationID: organizationID,
-	}).Error; err != nil {
-		return err
-	}
+func (r *RepositoryImpl) CreateInvites(ctx context.Context, userIDs []uint, organizationID uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		for _, userID := range userIDs {
+			if err := r.db.WithContext(ctx).Create(&Invite{
+				UserID:         userID,
+				OrganizationID: organizationID,
+			}).Error; err != nil {
 
-	return nil
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func (r *RepositoryImpl) GetInvitesByUserID(ctx context.Context, userID uint) ([]Invite, error) {
