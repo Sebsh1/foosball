@@ -7,7 +7,7 @@ import (
 )
 
 type Service interface {
-	CreateInvite(ctx context.Context, userID, organizationID uint) error
+	CreateInvites(ctx context.Context, userID []uint, organizationID uint) error
 	GetInvitesByUserID(ctx context.Context, userID uint) ([]Invite, error)
 	GetInvitesByOrganizationID(ctx context.Context, organizationID uint) ([]Invite, error)
 	DeclineInvite(ctx context.Context, id uint) error
@@ -28,8 +28,8 @@ func NewService(repo Repository, userService user.Service, orgService organizati
 	}
 }
 
-func (s *ServiceImpl) CreateInvite(ctx context.Context, userID, organizationID uint) error {
-	if err := s.repo.CreateInvite(ctx, userID, organizationID); err != nil {
+func (s *ServiceImpl) CreateInvites(ctx context.Context, userIDs []uint, organizationID uint) error {
+	if err := s.repo.CreateInvites(ctx, userIDs, organizationID); err != nil {
 		return err
 	}
 

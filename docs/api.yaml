@@ -1,0 +1,543 @@
+openapi: "3.0.2"
+
+info:
+  title: MatchLog
+  version: 1.0.0
+  description: Endpoints for interacting with MatchLog
+
+servers:
+  - url: https://matchlog/api
+    description: Production
+  - url: "{scheme}://{host}{base}"
+    description: Custom
+    variables:
+      scheme:
+        default: "http"
+        enum:
+          - "http"
+          - "https"
+      host:
+        default: "localhost:8081"
+      base:
+        default: "/api"
+
+tags:
+  - name: User endpoints
+    description: "Endpoints relating to users"
+  - name: Match endpoints
+    description: "Endpoints relating to matches"
+  - name: Organization endpoints
+    description: "Endpoints relating to organizations"
+  - name: Authorization endpoints
+    description: "Endpoints relating to authorization"
+
+components:
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token from MatchLog"
+  schemas:
+    Invite:
+      type: object
+      properties:
+        organizationId:
+          type: integer
+          example: 123456
+        userId:
+          type: integer
+          example: 123456
+
+paths:
+  /login:
+    post:
+      operationId: Login
+      tags:
+        - Authorization endpoints
+      description: |
+        Endpoint for users to login to MatchLog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "user@matchlog.com"
+                password:
+                  type: string
+                  example: "password1234"
+      responses:
+        "200":
+          description: "Login successful"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jwt:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+
+  /signup:
+    post:
+      operationId: Signup
+      tags:
+        - Authorization endpoints
+      description: |
+        Endpoint for users to signup to MatchLog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "user@matchlog.com"
+                name:
+                  type: string
+                  example: "John Doe"
+                password:
+                  type: string
+                  example: "password1234"
+      responses:
+        "201":
+          description: "Signup successful"
+        "400":
+          description: "Bad Request"
+        "500":
+          description: "Internal Server Error"
+
+  /user/{userId}:
+    delete:
+      operationId: DeleteUser
+      tags:
+        - User endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for deleting a user. Only the user themselves can delete their account.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: "User deleted"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+
+  /user/{userId}/invites:
+    get:
+      operationId: GetInvites
+      tags:
+        - User endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for getting all invites for a user. Only the user themselves can get their invites.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: "Invites retrieved"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invite"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+
+  /user/{userId}/invites/{inviteId}:
+    post:
+      operationId: RespondToInvite
+      tags:
+        - User endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for responding to an invite. Only the user themselves can respond to their invites.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: inviteId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accept:
+                  type: boolean
+                  example: true
+      responses:
+        "200":
+          description: "Response successful"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+
+  /organization/{orgId}/users:
+    get:
+      operationId: GetUsersInOrganization
+      tags:
+        - Organization endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for getting all users in an organization. Only users in the organization can get the users.
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: "Users retrieved"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "John Doe"
+                    email:
+                      type: string
+                      example: "user@matchlog.com"
+                    role:
+                      type: string
+                      example: "admin"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+
+  /organization/{orgId}:
+    put:
+      operationId: UpdateOrganization
+      tags:
+        - Organization endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for updating an organization. Only admins of the organization can update the organization.
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "My Organization"
+                ratingMethod:
+                  type: string
+                  example: "elo"
+      responses:
+        "200":
+          description: "Organization updated"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+    delete:
+      operationId: DeleteOrganization
+      tags:
+        - Organization endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for deleting an organization. Only admins of the organization can delete the organization.
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: "Organization deleted"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+
+  /organization:
+    post:
+      operationId: CreateOrganization
+      tags:
+        - Organization endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for creating an organization.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "My Organization"
+      responses:
+        "201":
+          description: "Organization created"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden, user is already in an organization"
+        "500":
+          description: "Internal Server Error"
+
+  /organization/{orgId}/invite:
+    post:
+      operationId: InviteUserToOrganization
+      tags:
+        - Organization endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for inviting a user to an organization. Only admins of the organization can invite users.
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "user@matchlog.com"
+      responses:
+        "201":
+          description: "User invited"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "404":
+          description: "Not Found. One or more users not found"
+        "500":
+          description: "Internal Server Error"
+
+  /organization/{orgId}/user/{userId}:
+    put:
+      operationId: UpdateUserRole
+      tags:
+        - Organization endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for updating a user's role in an organization. Only admins of the organization can update roles.
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: "admin"
+      responses:
+        "200":
+          description: "User role updated"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+    delete:
+      operationId: RemoveUserFromOrganization
+      tags:
+        - Organization endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for removing a user from an organization. Only admins of the organization can remove users.
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: "User removed"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+
+  /organization/{orgId}/match:
+    post:
+      operationId: CreateMatch
+      tags:
+        - Organization endpoints
+        - Match endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for creating a match. Only users in the organization can create matches.
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teamA:
+                  type: array
+                  items:
+                    type: integer
+                loserId:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        "201":
+          description: "Match created"
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"
+
+  /organization//{orgId}/top/{topX}/measure/{leaderboardType}:
+    get:
+      operationId: GetTopX
+      tags:
+        - Organization endpoints
+      security:
+        - JWT: []
+      description: |
+        Endpoint for getting the top X players in an organization according to some measure. Also called a leaderboard. Only users in the organization can get the top X players.
+      parameters:
+        - in: path
+          name: orgId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: topX
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: leaderboardType
+          required: true
+          schema:
+            type: string
+            enum:
+              - "wins"
+              - "win-streak"
+              - "loss-streak"
+              - "win-loss-ratio"
+              - "rating"
+              - "matches-played"
+      responses:
+        "200":
+          description: "Top X players retrieved"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "500":
+          description: "Internal Server Error"

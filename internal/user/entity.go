@@ -12,7 +12,7 @@ type Role string
 const (
 	AdminRole  Role = "admin"
 	MemberRole Role = "member"
-	NoRole     Role = ""
+	NoRole     Role = "none"
 )
 
 type User struct {
@@ -24,7 +24,7 @@ type User struct {
 
 	OrganizationID *uint `gorm:"index"`
 	Organization   organization.Organization
-	Role           Role
+	Role           Role `default:"none"`
 
 	RatingID uint
 	Rating   rating.Rating

@@ -14,7 +14,7 @@ import (
 
 func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 	type postMatchRequest struct {
-		OrganiziationID uint        `json:"organizationId" validate:"required"`
+		OrganiziationID uint        `param:"orgId" validate:"required"`
 		TeamA           []uint      `json:"teamA" validate:"required"`
 		TeamB           []uint      `json:"teamB" validate:"required"`
 		Sets            []match.Set `json:"sets" validate:"required"`

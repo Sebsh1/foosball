@@ -11,8 +11,7 @@ import (
 
 func (h *Handlers) CreateOrganization(c handlers.AuthenticatedContext) error {
 	type createOrgRequest struct {
-		Name         string `json:"name" validate:"required"`
-		RatingMethod string `json:"ratingMethod" validate:"required,oneof=elo rms glicko2"`
+		Name string `json:"name" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -26,12 +25,12 @@ func (h *Handlers) CreateOrganization(c handlers.AuthenticatedContext) error {
 		return echo.ErrForbidden
 	}
 
-	if err := h.organizationService.CreateOrganization(ctx, req.Name, req.RatingMethod); err != nil {
+	if err := h.organizationService.CreateOrganization(ctx, req.Name); err != nil {
 		h.logger.WithError(err).Error("failed to create organization")
 		return echo.ErrInternalServerError
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusCreated)
 }
 
 func (h *Handlers) DeleteOrganization(c handlers.AuthenticatedContext) error {
