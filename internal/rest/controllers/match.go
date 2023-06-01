@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"matchlog/internal/match"
 	"matchlog/internal/organization"
 	"matchlog/internal/rating"
 	"matchlog/internal/rest/handlers"
@@ -14,10 +13,11 @@ import (
 
 func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 	type postMatchRequest struct {
-		OrganiziationID uint        `param:"orgId" validate:"required"`
-		TeamA           []uint      `json:"teamA" validate:"required"`
-		TeamB           []uint      `json:"teamB" validate:"required"`
-		Sets            []match.Set `json:"sets" validate:"required"`
+		OrganiziationID uint   `param:"orgId" validate:"required"`
+		TeamA           []uint `json:"teamA" validate:"required"`
+		TeamB           []uint `json:"teamB" validate:"required"`
+		ScoresA         []int  `json:"scoresA" validate:"required"`
+		ScoresB         []int  `json:"scoresB" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -27,12 +27,16 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if err = h.matchService.CreateMatch(ctx, req.TeamA, req.TeamB, req.Sets); err != nil {
+	if len(req.ScoresA) != len(req.ScoresB) {
+		return echo.ErrBadRequest
+	}
+
+	if err = h.matchService.CreateMatch(ctx, req.OrganiziationID, req.TeamA, req.TeamB, req.ScoresA, req.ScoresB); err != nil {
 		h.logger.WithError(err).Error("failed to create match")
 		return echo.ErrInternalServerError
 	}
 
-	draw, winners, losers := h.matchService.DetermineResult(ctx, req.TeamA, req.TeamB, req.Sets)
+	draw, winners, losers := h.matchService.DetermineResult(ctx, req.TeamA, req.TeamB, req.ScoresA, req.ScoresB)
 
 	org, err := h.organizationService.GetOrganization(ctx, req.OrganiziationID)
 	if err != nil {

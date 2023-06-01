@@ -458,7 +458,6 @@ paths:
       operationId: CreateMatch
       tags:
         - Organization endpoints
-        - Match endpoints
       security:
         - JWT: []
       description: |
@@ -480,7 +479,15 @@ paths:
                   type: array
                   items:
                     type: integer
-                loserId:
+                teamB:
+                  type: array
+                  items:
+                    type: integer
+                scoresA:
+                  type: array
+                  items:
+                    type: integer
+                scoresB:
                   type: array
                   items:
                     type: integer

@@ -3,11 +3,12 @@ package match
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 )
 
 type Service interface {
-	DetermineResult(ctx context.Context, teamA, teamB []uint, sets []Set) (draw bool, winner []uint, loser []uint)
-	CreateMatch(ctx context.Context, teamA, teamB []uint, sets []Set) error
+	DetermineResult(ctx context.Context, teamA, teamB []uint, scoresA, scoresB []int) (draw bool, winners []uint, losers []uint)
+	CreateMatch(ctx context.Context, organizationID uint, teamA, teamB []uint, scoresA, scoresB []int) error
 }
 
 type ServiceImpl struct {
@@ -20,7 +21,7 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []uint, sets []Set) error {
+func (s *ServiceImpl) CreateMatch(ctx context.Context, organizationID uint, teamA, teamB []uint, scoresA, scoresB []int) error {
 	marshalledTeamA, err := json.Marshal(teamA)
 	if err != nil {
 		return err
@@ -31,10 +32,16 @@ func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []uint, sets
 		return err
 	}
 
+	sets := make([]string, len(scoresA))
+	for i, scoreA := range scoresA {
+		sets[i] = fmt.Sprintf("%d-%d", scoreA, scoresB[i])
+	}
+
 	match := &Match{
-		TeamA: marshalledTeamA,
-		TeamB: marshalledTeamB,
-		Sets:  sets,
+		OrganiziationID: organizationID,
+		TeamA:           marshalledTeamA,
+		TeamB:           marshalledTeamB,
+		Sets:            sets,
 	}
 
 	if err := s.repo.CreateMatch(ctx, match); err != nil {
@@ -44,14 +51,14 @@ func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []uint, sets
 	return nil
 }
 
-func (s *ServiceImpl) DetermineResult(ctx context.Context, teamA, teamB []uint, sets []Set) (bool, []uint, []uint) {
+func (s *ServiceImpl) DetermineResult(ctx context.Context, teamA, teamB []uint, scoresA, scoresB []int) (bool, []uint, []uint) {
 	teamASetWins := 0
 	teamBSetWins := 0
 
-	for _, set := range sets {
-		if set.PointsA > set.PointsB {
+	for i, scoreA := range scoresA {
+		if scoreA > scoresB[i] {
 			teamASetWins++
-		} else if set.PointsB > set.PointsA {
+		} else if scoreA < scoresB[i] {
 			teamBSetWins++
 		}
 	}
