@@ -10,18 +10,20 @@ const (
 	ResultDraw
 )
 
+type Measure string
+
+const (
+	MeasureWins   Measure = "wins"
+	MeasureStreak Measure = "streak"
+)
+
 type Statistic struct {
 	ID uint
 
-	Wins          int
-	Losses        int
-	Draws         int
-	MatchesPlayed int
-
-	WinLossRatio float64
-
-	WinStreak  int
-	LossStreak int
+	Wins   int
+	Draws  int
+	Losses int
+	Streak int
 
 	CreatedAt time.Time
 }

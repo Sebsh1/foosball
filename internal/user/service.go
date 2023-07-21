@@ -7,6 +7,7 @@ import (
 )
 
 type Service interface {
+	GetUser(ctx context.Context, id uint) (*User, error)
 	GetUsers(ctx context.Context, ids []uint) ([]*User, error)
 	GetUserByEmail(ctx context.Context, email string) (exists bool, user *User, err error)
 	GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error)
@@ -25,10 +26,19 @@ func NewService(repo Repository) Service {
 	}
 }
 
+func (s *ServiceImpl) GetUser(ctx context.Context, id uint) (*User, error) {
+	user, err := s.repo.GetUser(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get user %d", id)
+	}
+
+	return user, nil
+}
+
 func (s *ServiceImpl) GetUsers(ctx context.Context, ids []uint) ([]*User, error) {
 	users, err := s.repo.GetUsers(ctx, ids)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get users")
+		return nil, errors.Wrapf(err, "failed to get users %v", ids)
 	}
 
 	return users, nil
@@ -37,7 +47,7 @@ func (s *ServiceImpl) GetUsers(ctx context.Context, ids []uint) ([]*User, error)
 func (s *ServiceImpl) GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error) {
 	users, err := s.repo.GetUsersInOrganization(ctx, organizationID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get users in organization")
+		return nil, errors.Wrapf(err, "failed to get users in organization %d", organizationID)
 	}
 
 	return users, nil

@@ -19,7 +19,7 @@ type Repository interface {
 	GetOrganization(ctx context.Context, id uint) (*Organization, error)
 	CreateOrganization(ctx context.Context, organization *Organization) error
 	DeleteOrganization(ctx context.Context, id uint) error
-	UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error
+	UpdateOrganization(ctx context.Context, id uint, name string) error
 }
 
 type RepositoryImpl struct {
@@ -34,44 +34,51 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *RepositoryImpl) GetOrganization(ctx context.Context, id uint) (*Organization, error) {
 	var org Organization
-	if err := r.db.WithContext(ctx).First(&org, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	result := r.db.WithContext(ctx).
+		First(&org, id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrNotFound
 		}
 
-		return nil, err
+		return nil, result.Error
 	}
 
 	return &org, nil
 }
 
 func (r *RepositoryImpl) CreateOrganization(ctx context.Context, organization *Organization) error {
-	if err := r.db.WithContext(ctx).Create(&organization).Error; err != nil {
+	result := r.db.WithContext(ctx).
+		Create(&organization)
+	if result.Error != nil {
 		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
+		if errors.As(result.Error, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
 			return ErrDuplicateEntry
 		}
 
-		return err
+		return result.Error
 	}
 
 	return nil
 }
 
 func (r *RepositoryImpl) DeleteOrganization(ctx context.Context, id uint) error {
-	if err := r.db.WithContext(ctx).Delete(&Organization{}, id).Error; err != nil {
-		return err
+	result := r.db.WithContext(ctx).
+		Delete(&Organization{}, id)
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil
 }
 
-func (r *RepositoryImpl) UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error {
-	if err := r.db.WithContext(ctx).Model(&Organization{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"name":          name,
-		"rating_method": ratingMethod,
-	}).Error; err != nil {
-		return err
+func (r *RepositoryImpl) UpdateOrganization(ctx context.Context, id uint, name string) error {
+	result := r.db.WithContext(ctx).
+		Model(&Organization{}).
+		Where("id = ?", id).
+		Update("name", name)
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil

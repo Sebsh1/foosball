@@ -2,14 +2,13 @@ package organization
 
 import (
 	"context"
-	"matchlog/internal/rating"
 )
 
 type Service interface {
 	GetOrganization(ctx context.Context, id uint) (*Organization, error)
 	CreateOrganization(ctx context.Context, name string) error
 	DeleteOrganization(ctx context.Context, id uint) error
-	UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error
+	UpdateOrganization(ctx context.Context, id uint, name string) error
 }
 
 type ServiceImpl struct {
@@ -33,8 +32,7 @@ func (s *ServiceImpl) GetOrganization(ctx context.Context, id uint) (*Organizati
 
 func (s *ServiceImpl) CreateOrganization(ctx context.Context, name string) error {
 	org := &Organization{
-		Name:         name,
-		RatingMethod: rating.Elo,
+		Name: name,
 	}
 
 	if err := s.repo.CreateOrganization(ctx, org); err != nil {
@@ -52,8 +50,8 @@ func (s *ServiceImpl) DeleteOrganization(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *ServiceImpl) UpdateOrganization(ctx context.Context, id uint, name, ratingMethod string) error {
-	if err := s.repo.UpdateOrganization(ctx, id, name, ratingMethod); err != nil {
+func (s *ServiceImpl) UpdateOrganization(ctx context.Context, id uint, name string) error {
+	if err := s.repo.UpdateOrganization(ctx, id, name); err != nil {
 		return err
 	}
 

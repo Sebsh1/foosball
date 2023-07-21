@@ -111,7 +111,7 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 		return echo.ErrBadRequest
 	}
 
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, nil, user.NoRole); err != nil {
+	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, nil, user.NoneRole); err != nil {
 		h.logger.WithError(err).Error("failed to remove user from organization")
 		return echo.ErrInternalServerError
 	}

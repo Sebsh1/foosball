@@ -16,6 +16,7 @@ var (
 )
 
 type Repository interface {
+	GetUser(ctx context.Context, id uint) (*User, error)
 	GetUsers(ctx context.Context, ids []uint) ([]*User, error)
 	GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
@@ -34,10 +35,25 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
+func (r *RepositoryImpl) GetUser(ctx context.Context, id uint) (*User, error) {
+	var user *User
+	result := r.db.WithContext(ctx).
+		Where("id = ?", id).
+		First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return user, nil
+}
+
 func (r *RepositoryImpl) GetUsers(ctx context.Context, ids []uint) ([]*User, error) {
 	var users []*User
-	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&users).Error; err != nil {
-		return nil, err
+	result := r.db.WithContext(ctx).
+		Where("id IN ?", ids).
+		Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	return users, nil
@@ -45,21 +61,26 @@ func (r *RepositoryImpl) GetUsers(ctx context.Context, ids []uint) ([]*User, err
 
 func (r *RepositoryImpl) GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error) {
 	var users []User
-	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Find(&users).Error; err != nil {
-		return nil, err
+	result := r.db.WithContext(ctx).
+		Where("organization_id = ?", organizationID).
+		Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	return users, nil
 }
 
 func (r *RepositoryImpl) CreateUser(ctx context.Context, user *User) error {
-	if err := r.db.WithContext(ctx).Create(&user).Omit("organization_id").Error; err != nil {
+	result := r.db.WithContext(ctx).
+		Create(&user)
+	if result.Error != nil {
 		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
+		if errors.As(result.Error, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
 			return ErrDuplicateEntry
 		}
 
-		return err
+		return result.Error
 	}
 
 	return nil
@@ -67,28 +88,38 @@ func (r *RepositoryImpl) CreateUser(ctx context.Context, user *User) error {
 
 func (r *RepositoryImpl) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
-	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	result := r.db.WithContext(ctx).
+		Where("email = ?", email).
+		First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrNotFound
 		}
 
-		return nil, err
+		return nil, result.Error
 	}
 
 	return &user, nil
 }
 
 func (r *RepositoryImpl) DeleteUserByID(ctx context.Context, id uint) error {
-	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&User{}).Error; err != nil {
-		return err
+	result := r.db.WithContext(ctx).
+		Where("id = ?", id).
+		Delete(&User{})
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil
 }
 
 func (r *RepositoryImpl) UpdateUser(ctx context.Context, user *User) error {
-	if err := r.db.WithContext(ctx).Model(&User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
-		return err
+	result := r.db.WithContext(ctx).
+		Model(&User{}).
+		Where("id = ?", user.ID).
+		Updates(user)
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil

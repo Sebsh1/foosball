@@ -2,19 +2,23 @@ package match
 
 import (
 	"time"
+)
 
-	"gorm.io/datatypes"
+type Result rune
+
+const (
+	TeamAWins Result = 'A'
+	TeamBWins Result = 'B'
+	Draw      Result = 'D'
 )
 
 type Match struct {
 	ID uint `gorm:"primaryKey"`
 
-	OrganiziationID uint `gorm:"not null"`
-
-	TeamA datatypes.JSON `gorm:"not null"` // Marshalled JSON list of user IDs
-	TeamB datatypes.JSON `gorm:"not null"` // Marshalled JSON list of user IDs
-
-	Sets []string `gorm:"serializer:json;not null"`
+	TeamA  []uint   `gorm:"serializer:json;not null"`
+	TeamB  []uint   `gorm:"serializer:json;not null"`
+	Sets   []string `gorm:"serializer:json;not null"`
+	Result rune     `gorm:"not null"`
 
 	CreatedAt time.Time
 }

@@ -59,9 +59,8 @@ func (h *Handlers) DeleteOrganization(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) UpdateOrganization(c handlers.AuthenticatedContext) error {
 	type updateOrgRequest struct {
-		ID           uint   `param:"orgId" validate:"required,gt=0"`
-		Name         string `json:"name" validate:"required"`
-		RatingMethod string `json:"ratingMethod" validate:"required,oneof=elo rms glicko2"`
+		ID   uint   `param:"orgId" validate:"required,gt=0"`
+		Name string `json:"name" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -75,7 +74,7 @@ func (h *Handlers) UpdateOrganization(c handlers.AuthenticatedContext) error {
 		return echo.ErrUnauthorized
 	}
 
-	if err := h.organizationService.UpdateOrganization(ctx, req.ID, req.Name, req.RatingMethod); err != nil {
+	if err := h.organizationService.UpdateOrganization(ctx, req.ID, req.Name); err != nil {
 		h.logger.WithError(err).Error("failed to update organization")
 		return echo.ErrInternalServerError
 	}

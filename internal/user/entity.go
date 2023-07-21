@@ -1,9 +1,6 @@
 package user
 
 import (
-	"matchlog/internal/organization"
-	"matchlog/internal/rating"
-	"matchlog/internal/statistic"
 	"time"
 )
 
@@ -11,26 +8,22 @@ type Role string
 
 const (
 	AdminRole  Role = "admin"
+	Manager    Role = "manager"
 	MemberRole Role = "member"
-	NoRole     Role = "none"
+	NoneRole   Role = ""
 )
 
 type User struct {
 	ID uint `gorm:"primaryKey"`
 
-	Email string `gorm:"index;not null"`
+	Email string `gorm:"index;not null,unique"`
 	Name  string `gorm:"index;not null"`
 	Hash  string `gorm:"not null"`
 
 	OrganizationID *uint `gorm:"index"`
-	Organization   organization.Organization
-	Role           Role `default:"none"`
-
-	RatingID uint
-	Rating   rating.Rating
-
-	StatisticsID uint
-	Statistics   statistic.Statistic
+	Role           Role  `default:"member"`
+	RatingID       uint
+	StatisticsID   uint
 
 	CreatedAt time.Time
 }

@@ -29,13 +29,15 @@ func NewRepository(db *gorm.DB) Repository {
 }
 
 func (r *RepositoryImpl) CreateMatch(ctx context.Context, match *Match) error {
-	if err := r.db.WithContext(ctx).Create(&match).Error; err != nil {
+	result := r.db.WithContext(ctx).
+		Create(&match)
+	if result.Error != nil {
 		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
+		if errors.As(result.Error, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
 			return ErrDuplicateEntry
 		}
 
-		return err
+		return result.Error
 	}
 
 	return nil

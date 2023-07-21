@@ -1,8 +1,7 @@
 package controllers
 
 import (
-	"matchlog/internal/organization"
-	"matchlog/internal/rating"
+	"matchlog/internal/match"
 	"matchlog/internal/rest/handlers"
 	"matchlog/internal/rest/helpers"
 	"matchlog/internal/statistic"
@@ -13,11 +12,10 @@ import (
 
 func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 	type postMatchRequest struct {
-		OrganiziationID uint   `param:"orgId" validate:"required"`
-		TeamA           []uint `json:"teamA" validate:"required"`
-		TeamB           []uint `json:"teamB" validate:"required"`
-		ScoresA         []int  `json:"scoresA" validate:"required"`
-		ScoresB         []int  `json:"scoresB" validate:"required"`
+		TeamA   []uint `json:"teamA" validate:"required"`
+		TeamB   []uint `json:"teamB" validate:"required"`
+		ScoresA []int  `json:"scoresA" validate:"required"`
+		ScoresB []int  `json:"scoresB" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -31,24 +29,14 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if err = h.matchService.CreateMatch(ctx, req.OrganiziationID, req.TeamA, req.TeamB, req.ScoresA, req.ScoresB); err != nil {
+	result, winners, losers := h.matchService.DetermineResult(ctx, req.TeamA, req.TeamB, req.ScoresA, req.ScoresB)
+
+	if err = h.matchService.CreateMatch(ctx, req.TeamA, req.TeamB, req.ScoresA, req.ScoresB, result); err != nil {
 		h.logger.WithError(err).Error("failed to create match")
 		return echo.ErrInternalServerError
 	}
 
-	draw, winners, losers := h.matchService.DetermineResult(ctx, req.TeamA, req.TeamB, req.ScoresA, req.ScoresB)
-
-	org, err := h.organizationService.GetOrganization(ctx, req.OrganiziationID)
-	if err != nil {
-		if err == organization.ErrNotFound {
-			return echo.ErrNotFound
-		}
-
-		h.logger.WithError(err).Error("failed to get organization")
-		return echo.ErrInternalServerError
-	}
-
-	if draw {
+	if result == match.Draw {
 		allPlayers := append(req.TeamA, req.TeamB...)
 		if err := h.statisticService.UpdateStatisticsByUserIDs(ctx, allPlayers, statistic.ResultDraw); err != nil {
 			h.logger.WithError(err).Error("failed to update statistics for draw")
@@ -66,7 +54,8 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 		}
 	}
 
-	if err := h.ratingService.UpdateRatings(ctx, rating.Method(org.RatingMethod), draw, winners, losers); err != nil {
+	isDraw := result == match.Draw
+	if err := h.ratingService.UpdateRatings(ctx, isDraw, winners, losers); err != nil {
 		h.logger.WithError(err).Error("failed to update ratings")
 		return echo.ErrInternalServerError
 	}

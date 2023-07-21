@@ -2,13 +2,14 @@ package match
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type Service interface {
-	DetermineResult(ctx context.Context, teamA, teamB []uint, scoresA, scoresB []int) (draw bool, winners []uint, losers []uint)
-	CreateMatch(ctx context.Context, organizationID uint, teamA, teamB []uint, scoresA, scoresB []int) error
+	CreateMatch(ctx context.Context, teamA, teamB []uint, scoresA, scoresB []int, result Result) error
+	DetermineResult(ctx context.Context, teamA, teamB []uint, scoresA, scoresB []int) (result Result, winners []uint, losers []uint)
 }
 
 type ServiceImpl struct {
@@ -21,37 +22,27 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) CreateMatch(ctx context.Context, organizationID uint, teamA, teamB []uint, scoresA, scoresB []int) error {
-	marshalledTeamA, err := json.Marshal(teamA)
-	if err != nil {
-		return err
-	}
-
-	marshalledTeamB, err := json.Marshal(teamB)
-	if err != nil {
-		return err
-	}
-
+func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []uint, scoresA, scoresB []int, result Result) error {
 	sets := make([]string, len(scoresA))
 	for i, scoreA := range scoresA {
 		sets[i] = fmt.Sprintf("%d-%d", scoreA, scoresB[i])
 	}
 
 	match := &Match{
-		OrganiziationID: organizationID,
-		TeamA:           marshalledTeamA,
-		TeamB:           marshalledTeamB,
-		Sets:            sets,
+		TeamA:  teamA,
+		TeamB:  teamB,
+		Sets:   sets,
+		Result: rune(result),
 	}
 
 	if err := s.repo.CreateMatch(ctx, match); err != nil {
-		return err
+		return errors.Wrap(err, "failed to create match")
 	}
 
 	return nil
 }
 
-func (s *ServiceImpl) DetermineResult(ctx context.Context, teamA, teamB []uint, scoresA, scoresB []int) (bool, []uint, []uint) {
+func (s *ServiceImpl) DetermineResult(ctx context.Context, teamA, teamB []uint, scoresA, scoresB []int) (Result, []uint, []uint) {
 	teamASetWins := 0
 	teamBSetWins := 0
 
@@ -64,11 +55,11 @@ func (s *ServiceImpl) DetermineResult(ctx context.Context, teamA, teamB []uint, 
 	}
 
 	if teamASetWins > teamBSetWins {
-		return false, teamA, teamB
+		return TeamAWins, teamA, teamB
 	} else if teamBSetWins > teamASetWins {
-		return false, teamB, teamA
+		return TeamBWins, teamB, teamA
 	} else {
-		return true, nil, nil
+		return Draw, nil, nil
 	}
 
 }

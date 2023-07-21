@@ -68,13 +68,12 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, id uint) error {
 		return err
 	}
 
-	users, err := s.userService.GetUsers(ctx, []uint{invite.UserID})
+	user, err := s.userService.GetUser(ctx, invite.UserID)
 	if err != nil {
 		return err
 	}
 
-	u := users[0]
-	if err := s.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, &invite.OrganizationID, u.Role); err != nil {
+	if err := s.userService.UpdateUser(ctx, user.ID, user.Email, user.Name, user.Hash, &invite.OrganizationID, user.Role); err != nil {
 		return err
 	}
 

@@ -24,8 +24,11 @@ func NewRepository(db *gorm.DB) Repository {
 func (r *RepositoryImpl) GetRatingByUserID(ctx context.Context, userID uint) (*Rating, error) {
 	var rating Rating
 
-	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&rating).Error; err != nil {
-		return nil, err
+	result := r.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		First(&rating)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	return &rating, nil
@@ -33,8 +36,11 @@ func (r *RepositoryImpl) GetRatingByUserID(ctx context.Context, userID uint) (*R
 
 func (r *RepositoryImpl) GetRatingsByUserIDs(ctx context.Context, userIDs []uint) ([]Rating, error) {
 	var ratings []Rating
-	if err := r.db.WithContext(ctx).Where("user_id IN ?", userIDs).Find(&ratings).Error; err != nil {
-		return nil, err
+	result := r.db.WithContext(ctx).
+		Where("user_id IN ?", userIDs).
+		Find(&ratings)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	return ratings, nil
@@ -44,15 +50,15 @@ func (r *RepositoryImpl) GetTopXAmongUserIDsByRating(ctx context.Context, topX i
 	var topXUserIDs []uint
 	var ratings []int
 
-	err := r.db.WithContext(ctx).
+	result := r.db.WithContext(ctx).
 		Model(&Rating{}).
 		Order("rating desc").
 		Limit(topX).
 		Pluck("user_id", &topXUserIDs).
 		Pluck("value", &ratings).
-		Where("user_id IN ?", userIDs).Error
-	if err != nil {
-		return nil, nil, err
+		Where("user_id IN ?", userIDs)
+	if result.Error != nil {
+		return nil, nil, result.Error
 	}
 
 	return topXUserIDs, ratings, nil
@@ -61,8 +67,11 @@ func (r *RepositoryImpl) GetTopXAmongUserIDsByRating(ctx context.Context, topX i
 func (r *RepositoryImpl) UpdateRatings(ctx context.Context, ratings []Rating) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		for _, rating := range ratings {
-			if err := tx.WithContext(ctx).Model(&rating).Updates(rating).Error; err != nil {
-				return err
+			result := tx.WithContext(ctx).
+				Model(&rating).
+				Updates(rating)
+			if result.Error != nil {
+				return result.Error
 			}
 		}
 		return nil

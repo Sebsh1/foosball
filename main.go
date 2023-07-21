@@ -58,7 +58,6 @@ func main() {
 
 	if err := db.AutoMigrate(
 		&match.Match{},
-		&match.Set{},
 		&organization.Organization{},
 		&user.User{},
 		&invite.Invite{},
