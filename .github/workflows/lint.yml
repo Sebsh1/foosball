@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   lint:
-    name: Lint 🧹
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-go@v4

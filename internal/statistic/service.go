@@ -99,11 +99,3 @@ func (s *ServiceImpl) UpdateStatisticsByUserIDs(ctx context.Context, userIDs []u
 
 	return nil
 }
-
-func (s *ServiceImpl) convertIntsToFloat64s(ints []int) []float64 {
-	floats := make([]float64, len(ints))
-	for i, v := range ints {
-		floats[i] = float64(v)
-	}
-	return floats
-}
