@@ -21,7 +21,7 @@ import (
 )
 
 type Config struct {
-	Port uint32 `mapstructure:"port" default:"8001"`
+	Port int `mapstructure:"port" default:"8001"`
 }
 
 type Server struct {

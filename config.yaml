@@ -1,0 +1,14 @@
+log:
+  level: info
+  format: text
+
+rest:
+  port: 8001
+
+db:
+  dsn: matchlog:supersecret@tcp(localhost:3307)/matchlog?charset=utf8&parseTime=True
+
+authentication:
+  secret: supersecret
+  issuer: MatchLog
+  valid_duration: 6h

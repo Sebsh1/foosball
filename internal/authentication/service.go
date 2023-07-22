@@ -12,6 +12,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Config struct {
+	Secret string `mapstructure:"secret"`
+}
+
 type Service interface {
 	Login(ctx context.Context, email, password string) (valid bool, token string, err error)
 	VerifyJWT(ctx context.Context, token string) (valid bool, claims *Claims, err error)
