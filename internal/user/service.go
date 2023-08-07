@@ -12,6 +12,7 @@ type Service interface {
 	GetUserByEmail(ctx context.Context, email string) (exists bool, user *User, err error)
 	GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error)
 	CreateUser(ctx context.Context, email, name, hash string) error
+	CreateVirtualUser(ctx context.Context, name string, organizationID uint) error
 	DeleteUser(ctx context.Context, id uint) error
 	UpdateUser(ctx context.Context, id uint, email, name, hash string, organizationID *uint, role Role) error
 }
@@ -62,6 +63,20 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email, name, hash string) 
 
 	if err := s.repo.CreateUser(ctx, user); err != nil {
 		return errors.Wrap(err, "failed to create user")
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) CreateVirtualUser(ctx context.Context, name string, organizationID uint) error {
+	user := &User{
+		Name:           name,
+		OrganizationID: &organizationID,
+		Role:           VirtualRole,
+	}
+
+	if err := s.repo.CreateUser(ctx, user); err != nil {
+		return errors.Wrap(err, "failed to create virtual user")
 	}
 
 	return nil

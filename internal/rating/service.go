@@ -10,6 +10,7 @@ import (
 type Service interface {
 	GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, ratings []int, err error)
 	UpdateRatings(ctx context.Context, draw bool, winningUserIDs, losingUserIDs []uint) error
+	TransferRatings(ctx context.Context, fromUserID, toUserID uint) error
 }
 
 type ServiceImpl struct {
@@ -86,6 +87,28 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winningUserI
 	}
 
 	if err := s.repo.UpdateRatings(ctx, updatedRatings); err != nil {
+		return errors.Wrap(err, "failed to update ratings")
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) TransferRatings(ctx context.Context, fromUserID, toUserID uint) error {
+	fromUserRating, err := s.repo.GetRatingByUserID(ctx, fromUserID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get from user rating")
+	}
+
+	toUserRating, err := s.repo.GetRatingByUserID(ctx, toUserID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get to user rating")
+	}
+
+	fromUserRating.UserID = toUserID
+	toUserRating.UserID = fromUserID
+
+	transferedRatings := []Rating{*fromUserRating, *toUserRating}
+	if err := s.repo.UpdateRatings(ctx, transferedRatings); err != nil {
 		return errors.Wrap(err, "failed to update ratings")
 	}
 
