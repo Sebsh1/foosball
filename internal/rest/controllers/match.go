@@ -16,6 +16,7 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 		TeamB   []uint `json:"teamB" validate:"required"`
 		ScoresA []int  `json:"scoresA" validate:"required"`
 		ScoresB []int  `json:"scoresB" validate:"required"`
+		Rated   bool   `json:"rated" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -52,6 +53,10 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 			h.logger.WithError(err).Error("failed to update statistics for losers")
 			return echo.ErrInternalServerError
 		}
+	}
+
+	if !req.Rated {
+		return c.NoContent(http.StatusCreated)
 	}
 
 	isDraw := result == match.Draw

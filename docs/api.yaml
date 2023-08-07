@@ -485,6 +485,9 @@ paths:
                   type: array
                   items:
                     type: integer
+                rated:
+                  type: boolean
+                  example: true
       responses:
         "201":
           description: "Match created"
