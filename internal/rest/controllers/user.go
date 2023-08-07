@@ -100,15 +100,23 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 		return echo.ErrUnauthorized
 	}
 
-	users, err := h.userService.GetUsers(ctx, []uint{req.UserId})
+	u, err := h.userService.GetUser(ctx, req.UserId)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get users")
+		h.logger.WithError(err).Error("failed to get user")
 		return echo.ErrInternalServerError
 	}
 
-	u := users[0]
 	if *u.OrganizationID != req.OrgId {
 		return echo.ErrBadRequest
+	}
+
+	if u.Role == user.VirtualRole {
+		if err := h.userService.DeleteUser(ctx, u.ID); err != nil {
+			h.logger.WithError(err).Error("failed to delete virtual user")
+			return echo.ErrInternalServerError
+		}
+
+		return c.NoContent(http.StatusOK)
 	}
 
 	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, nil, user.NoneRole); err != nil {
@@ -123,7 +131,7 @@ func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 	type setUserAsAdminRequest struct {
 		OrgId  uint   `param:"orgId" validate:"required,gt=0"`
 		UserId uint   `param:"userId" validate:"required,gte=0"`
-		Role   string `json:"role" validate:"required,oneof=admin member none"`
+		Role   string `json:"role" validate:"required,oneof=admin manager member"`
 	}
 
 	ctx := c.Request().Context()
@@ -151,6 +159,87 @@ func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 	role := user.Role(req.Role)
 	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, role); err != nil {
 		h.logger.WithError(err).Error("failed to set user as admin")
+		return echo.ErrInternalServerError
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handlers) AddVirtualUserToOrganization(c handlers.AuthenticatedContext) error {
+	type addVirtualUserToOrganizationRequest struct {
+		OrgId uint   `param:"orgId" validate:"required,gt=0"`
+		Name  string `json:"name" validate:"required"`
+	}
+
+	ctx := c.Request().Context()
+
+	req, err := helpers.Bind[addVirtualUserToOrganizationRequest](c)
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID {
+		return echo.ErrUnauthorized
+	}
+
+	if err := h.userService.CreateVirtualUser(ctx, req.Name, req.OrgId); err != nil {
+		h.logger.WithError(err).Error("failed to create virtual user")
+		return echo.ErrInternalServerError
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handlers) TransferVirtualUserToUser(c handlers.AuthenticatedContext) error {
+	type transferVirtualUserToUserRequest struct {
+		OrgId         uint `param:"orgId" validate:"required,gt=0"`
+		UserId        uint `param:"userId" validate:"required,gt=0"`
+		VirtualUserId uint `param:"virtualUserId" validate:"required,gt=0"`
+	}
+
+	ctx := c.Request().Context()
+
+	req, err := helpers.Bind[transferVirtualUserToUserRequest](c)
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID {
+		return echo.ErrUnauthorized
+	}
+
+	virtualUser, err := h.userService.GetUser(ctx, req.VirtualUserId)
+	if err != nil {
+		h.logger.WithError(err).Error("failed to get virtual user")
+		return echo.ErrInternalServerError
+	}
+
+	if *virtualUser.OrganizationID != req.OrgId || virtualUser.Role != user.VirtualRole {
+		return echo.ErrBadRequest
+	}
+
+	realUser, err := h.userService.GetUser(ctx, req.UserId)
+	if err != nil {
+		h.logger.WithError(err).Error("failed to get user")
+		return echo.ErrInternalServerError
+	}
+
+	if *realUser.OrganizationID != req.OrgId || realUser.Role == user.VirtualRole {
+		return echo.ErrBadRequest
+	}
+
+	if err := h.ratingService.TransferRatings(ctx, req.VirtualUserId, req.UserId); err != nil {
+		h.logger.WithError(err).Error("failed to transfer ratings")
+		return echo.ErrInternalServerError
+	}
+
+	if err := h.statisticService.TransferStatistics(ctx, req.VirtualUserId, req.UserId); err != nil {
+		h.logger.WithError(err).Error("failed to transfer statistics")
+		return echo.ErrInternalServerError
+	}
+
+	if err := h.userService.DeleteUser(ctx, req.VirtualUserId); err != nil {
+		h.logger.WithError(err).Error("failed to delete virtual user")
 		return echo.ErrInternalServerError
 	}
 

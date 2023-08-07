@@ -18,7 +18,9 @@ const (
 )
 
 type Statistic struct {
-	ID uint
+	ID uint `gorm:"primaryKey"`
+
+	UserID uint `gorm:"not null"`
 
 	Wins   int
 	Draws  int

@@ -10,6 +10,7 @@ type Service interface {
 	GetStatisticByUserID(ctx context.Context, userID uint) (*Statistic, error)
 	GetTopXAmongUserIDsByMeasure(ctx context.Context, topX int, userIDs []uint, measure Measure) (topXUserIDs []uint, values []int, err error)
 	UpdateStatisticsByUserIDs(ctx context.Context, userIDs []uint, result MatchResult) error
+	TransferStatistics(ctx context.Context, fromUserID, toUserID uint) error
 }
 
 type ServiceImpl struct {
@@ -94,6 +95,27 @@ func (s *ServiceImpl) UpdateStatisticsByUserIDs(ctx context.Context, userIDs []u
 	}
 
 	if err := s.repo.UpdateStatistics(ctx, updatedStatistics); err != nil {
+		return errors.Wrap(err, "failed to update statistics")
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) TransferStatistics(ctx context.Context, fromUserID, toUserID uint) error {
+	fromStats, err := s.repo.GetStatisticByUserID(ctx, fromUserID)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get statistics for user %d", fromUserID)
+	}
+
+	toStats, err := s.repo.GetStatisticByUserID(ctx, toUserID)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get statistics for user %d", toUserID)
+	}
+
+	fromStats.UserID = toUserID
+	toStats.UserID = fromUserID
+
+	if err := s.repo.UpdateStatistics(ctx, []Statistic{*fromStats, *toStats}); err != nil {
 		return errors.Wrap(err, "failed to update statistics")
 	}
 
