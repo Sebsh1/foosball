@@ -7,7 +7,6 @@ info:
 
 servers:
   - url: https://matchlog/api
-    description: Production
   - url: "{scheme}://{host}{base}"
     description: Custom
     variables:
@@ -22,14 +21,12 @@ servers:
         default: "/api"
 
 tags:
-  - name: User endpoints
-    description: "Endpoints relating to users"
-  - name: Match endpoints
-    description: "Endpoints relating to matches"
-  - name: Organization endpoints
-    description: "Endpoints relating to organizations"
   - name: Authorization endpoints
     description: "Endpoints relating to authorization"
+  - name: User endpoints
+    description: "Endpoints relating to users"
+  - name: Organization endpoints
+    description: "Endpoints relating to organizations"
 
 components:
   securitySchemes:
@@ -281,9 +278,6 @@ paths:
                 name:
                   type: string
                   example: "My Organization"
-                ratingMethod:
-                  type: string
-                  example: "elo"
       responses:
         "200":
           description: "Organization updated"

@@ -22,8 +22,6 @@ type User struct {
 
 	OrganizationID *uint `gorm:"index"`
 	Role           Role  `default:"member"`
-	RatingID       uint
-	StatisticsID   uint
 
 	CreatedAt time.Time
 }
