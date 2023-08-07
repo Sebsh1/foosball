@@ -76,6 +76,8 @@ func Register(
 	orgGroup.DELETE("/:orgId", authHandler(h.DeleteOrganization), orginizationGuard, adminGuard)
 	orgGroup.POST("", authHandler(h.CreateOrganization))
 	orgGroup.POST("/:orgId/invite/", authHandler(h.InviteUsersToOrganization), orginizationGuard, adminGuard)
+	orgGroup.POST("/:orgId/user/virtual", authHandler(h.AddVirtualUserToOrganization), orginizationGuard, adminGuard)
+	orgGroup.POST("/:orgId/user/:userId/virtual/:virtualUserId", authHandler(h.TransferVirtualUserToUser), orginizationGuard, adminGuard)
 	orgGroup.DELETE("/:orgId/user/:userId", authHandler(h.RemoveUserFromOrganization), orginizationGuard, adminGuard)
 	orgGroup.PUT("/:orgId/user/:userId", authHandler(h.UpdateUserRole), orginizationGuard, adminGuard)
 	orgGroup.GET("/:orgId/top/:topX/measure/:leaderboardType", authHandler(h.GetLeaderboard), orginizationGuard)
