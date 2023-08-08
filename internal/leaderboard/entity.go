@@ -8,13 +8,13 @@ const (
 	TypeRating LeaderboardType = "rating"
 )
 
-type Placement struct {
+type Entry struct {
 	Value  float64 `json:"value"`
 	UserID uint    `json:"user_id"`
 	Name   string  `json:"name"`
 }
 
 type Leaderboard struct {
-	Type       LeaderboardType `json:"type"`
-	Placements []Placement     `json:"placements"`
+	Type    LeaderboardType `json:"type"`
+	Entries []Entry         `json:"entries"`
 }

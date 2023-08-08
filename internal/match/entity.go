@@ -18,7 +18,7 @@ type Match struct {
 	TeamA  []uint   `gorm:"serializer:json;not null"`
 	TeamB  []uint   `gorm:"serializer:json;not null"`
 	Sets   []string `gorm:"serializer:json;not null"`
-	Result rune     `gorm:"not null"`
+	Result Result   `gorm:"not null"`
 
 	CreatedAt time.Time
 }

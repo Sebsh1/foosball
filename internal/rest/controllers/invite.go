@@ -10,10 +10,6 @@ import (
 )
 
 func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
-	type getUserInvitesRequest struct {
-		ID uint `param:"userId" validate:"required"`
-	}
-
 	type responseInvite struct {
 		OrganizationID uint `json:"organizationId"`
 		UserID         uint `json:"userId"`
@@ -25,16 +21,7 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[getUserInvitesRequest](c)
-	if err != nil {
-		return echo.ErrBadRequest
-	}
-
-	if req.ID != c.Claims.UserID {
-		return echo.ErrUnauthorized
-	}
-
-	invites, err := h.inviteService.GetInvitesByUserID(ctx, req.ID)
+	invites, err := h.inviteService.GetInvitesByUserID(ctx, c.Claims.UserID)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get user invites")
 		return echo.ErrInternalServerError
@@ -57,7 +44,6 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 	type acceptInviteRequest struct {
-		UserID   uint `param:"userId" validate:"required,gte=0"`
 		InviteID uint `param:"inviteId" validate:"required,gte=0"`
 		Accepted bool `json:"accepted" validate:"required"`
 	}
@@ -67,10 +53,6 @@ func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 	req, err := helpers.Bind[acceptInviteRequest](c)
 	if err != nil {
 		return echo.ErrBadRequest
-	}
-
-	if req.UserID != c.Claims.UserID {
-		return echo.ErrUnauthorized
 	}
 
 	if req.Accepted {
@@ -98,8 +80,7 @@ func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) InviteUsersToOrganization(c handlers.AuthenticatedContext) error {
 	type inviteUsersToOrganizationRequest struct {
-		OrganizationID uint     `param:"orgId" validate:"required,gt=0"`
-		Emails         []string `json:"emails" validate:"required"`
+		Emails []string `json:"emails" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -107,10 +88,6 @@ func (h *Handlers) InviteUsersToOrganization(c handlers.AuthenticatedContext) er
 	req, err := helpers.Bind[inviteUsersToOrganizationRequest](c)
 	if err != nil {
 		return echo.ErrBadRequest
-	}
-
-	if req.OrganizationID != c.Claims.OrganizationID {
-		return echo.ErrUnauthorized
 	}
 
 	userIDs := make([]uint, len(req.Emails))
@@ -128,7 +105,7 @@ func (h *Handlers) InviteUsersToOrganization(c handlers.AuthenticatedContext) er
 		userIDs = append(userIDs, user.ID)
 	}
 
-	if err := h.inviteService.CreateInvites(ctx, userIDs, req.OrganizationID); err != nil {
+	if err := h.inviteService.CreateInvites(ctx, userIDs, c.Claims.OrganizationID); err != nil {
 		h.logger.WithError(err).Error("failed to create invites")
 		return echo.ErrInternalServerError
 	}

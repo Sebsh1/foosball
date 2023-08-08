@@ -72,9 +72,9 @@ func (s *ServiceImpl) GetLeaderboard(ctx context.Context, organizationID uint, t
 		return nil, errors.Wrap(err, "failed to get users")
 	}
 
-	placements := make([]Placement, len(users))
+	entries := make([]Entry, len(users))
 	for i, u := range users {
-		placements[i] = Placement{
+		entries[i] = Entry{
 			Value:  values[i],
 			UserID: u.ID,
 			Name:   u.Name,
@@ -86,8 +86,8 @@ func (s *ServiceImpl) GetLeaderboard(ctx context.Context, organizationID uint, t
 	}
 
 	lboard := &Leaderboard{
-		Type:       leaderboardType,
-		Placements: placements,
+		Type:    leaderboardType,
+		Entries: entries,
 	}
 
 	return lboard, nil

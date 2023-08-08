@@ -32,7 +32,7 @@ func (s *ServiceImpl) CreateMatch(ctx context.Context, teamA, teamB []uint, scor
 		TeamA:  teamA,
 		TeamB:  teamB,
 		Sets:   sets,
-		Result: rune(result),
+		Result: result,
 	}
 
 	if err := s.repo.CreateMatch(ctx, match); err != nil {

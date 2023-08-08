@@ -116,7 +116,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /user/{userId}:
+  /user:
     delete:
       operationId: DeleteUser
       tags:
@@ -126,12 +126,6 @@ paths:
       description: |
         Endpoint for deleting a user.
         Only the user themselves can delete their account.
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: integer
       responses:
         "200":
           description: "User deleted"
@@ -142,7 +136,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /user/{userId}/invites:
+  /user/invites:
     get:
       operationId: GetInvites
       tags:
@@ -152,12 +146,6 @@ paths:
       description: |
         Endpoint for getting all invites for a user.
         Only the user themselves can get their invites.
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: integer
       responses:
         "200":
           description: "Invites retrieved"
@@ -174,7 +162,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /user/{userId}/invites/{inviteId}:
+  /user/invites/{inviteId}:
     post:
       operationId: RespondToInvite
       tags:
@@ -185,11 +173,6 @@ paths:
         Endpoint for responding to an invite.
         Only the user themselves can respond to their invites.
       parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: integer
         - in: path
           name: inviteId
           required: true
@@ -215,7 +198,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/{orgId}/users:
+  /organization/users:
     get:
       operationId: GetUsersInOrganization
       tags:
@@ -225,12 +208,6 @@ paths:
       description: |
         Endpoint for getting all users in an organization.
         Only users in the organization can get the users.
-      parameters:
-        - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
       responses:
         "200":
           description: "Users retrieved"
@@ -257,7 +234,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/{orgId}:
+  /organization:
     put:
       operationId: UpdateOrganization
       tags:
@@ -267,12 +244,6 @@ paths:
       description: |
         Endpoint for updating an organization.
         Only admins of the organization can update the organization.
-      parameters:
-        - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
@@ -301,12 +272,6 @@ paths:
       description: |
         Endpoint for deleting an organization.
         Only admins of the organization can delete the organization.
-      parameters:
-        - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
       responses:
         "200":
           description: "Organization deleted"
@@ -316,8 +281,6 @@ paths:
           description: "Unauthorized"
         "500":
           description: "Internal Server Error"
-
-  /organization:
     post:
       operationId: CreateOrganization
       tags:
@@ -348,7 +311,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/{orgId}/invite:
+  /organization/invites:
     post:
       operationId: InviteUserToOrganization
       tags:
@@ -386,7 +349,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/{orgId}/user/{userId}:
+  /organization/users/{userId}:
     put:
       operationId: UpdateUserRole
       tags:
@@ -397,11 +360,6 @@ paths:
         Endpoint for updating a user's role in an organization.
         Only admins of the organization can update roles.
       parameters:
-        - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
         - in: path
           name: userId
           required: true
@@ -456,7 +414,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/{orgId}/user/virtual:
+  /organization/users/virtual:
     post:
       operationId: AddVirtualUserToOrganization
       tags:
@@ -466,12 +424,6 @@ paths:
       description: |
         Endpoint for adding virtual users to an organization.
         Only admins of the organization add virtual users.
-      parameters:
-        - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
@@ -492,7 +444,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/:orgId/user/:userId/virtual/:virtualUserId:
+  /organization/users/{userId]/virtual/{virtualUserId}:
     post:
       operationId: TransferVirtualUserToUser
       tags:
@@ -506,11 +458,6 @@ paths:
         Only admins of the organization add virtual users.
       parameters:
         - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
-        - in: path
           name: userId
           required: true
           schema:
@@ -522,7 +469,7 @@ paths:
             type: integer
       responses:
         "200":
-          description: "Virtual user added"
+          description: "Virtual user transfered to real user"
         "400":
           description: "Bad Request"
         "401":
@@ -530,7 +477,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/{orgId}/match:
+  /organization/matches:
     post:
       operationId: CreateMatch
       tags:
@@ -540,12 +487,6 @@ paths:
       description: |
         Endpoint for creating a match.
         Only users in the organization can create matches.
-      parameters:
-        - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
@@ -582,7 +523,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization//{orgId}/top/{topX}/measure/{leaderboardType}:
+  /organization/top/{topX}/measures/{leaderboardType}:
     get:
       operationId: GetTopX
       tags:

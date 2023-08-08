@@ -11,6 +11,7 @@ type Repository interface {
 	GetStatisticByUserID(ctx context.Context, userID uint) (*Statistic, error)
 	GetTopXAmongUserIDsByWins(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, values []int, err error)
 	GetTopXAmongUserIDsByStreak(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, values []int, err error)
+	CreateStatistic(ctx context.Context, userID uint) error
 	UpdateStatistics(ctx context.Context, stats []Statistic) error
 }
 
@@ -83,6 +84,24 @@ func (r *RepositoryImpl) GetTopXAmongUserIDsByStreak(ctx context.Context, topX i
 	}
 
 	return topXUserIDs, streaks, nil
+}
+
+func (r *RepositoryImpl) CreateStatistic(ctx context.Context, userID uint) error {
+	stat := Statistic{
+		UserID: userID,
+		Wins:   0,
+		Draws:  0,
+		Losses: 0,
+		Streak: 0,
+	}
+
+	result := r.db.WithContext(ctx).
+		Create(&stat)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (r *RepositoryImpl) UpdateStatistics(ctx context.Context, stats []Statistic) error {

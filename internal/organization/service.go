@@ -2,6 +2,8 @@ package organization
 
 import (
 	"context"
+
+	"github.com/pkg/errors"
 )
 
 type Service interface {
@@ -24,7 +26,7 @@ func NewService(repo Repository) Service {
 func (s *ServiceImpl) GetOrganization(ctx context.Context, id uint) (*Organization, error) {
 	org, err := s.repo.GetOrganization(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get organization")
 	}
 
 	return org, nil
@@ -36,7 +38,7 @@ func (s *ServiceImpl) CreateOrganization(ctx context.Context, name string) error
 	}
 
 	if err := s.repo.CreateOrganization(ctx, org); err != nil {
-		return err
+		return errors.Wrap(err, "failed to create organization")
 	}
 
 	return nil
@@ -44,7 +46,7 @@ func (s *ServiceImpl) CreateOrganization(ctx context.Context, name string) error
 
 func (s *ServiceImpl) DeleteOrganization(ctx context.Context, id uint) error {
 	if err := s.repo.DeleteOrganization(ctx, id); err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete organization")
 	}
 
 	return nil
@@ -52,7 +54,7 @@ func (s *ServiceImpl) DeleteOrganization(ctx context.Context, id uint) error {
 
 func (s *ServiceImpl) UpdateOrganization(ctx context.Context, id uint, name string) error {
 	if err := s.repo.UpdateOrganization(ctx, id, name); err != nil {
-		return err
+		return errors.Wrap(err, "failed to update organization")
 	}
 
 	return nil

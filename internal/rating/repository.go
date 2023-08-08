@@ -10,6 +10,7 @@ type Repository interface {
 	GetRatingByUserID(ctx context.Context, userID uint) (*Rating, error)
 	GetRatingsByUserIDs(ctx context.Context, userIDs []uint) ([]Rating, error)
 	GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, ratings []int, err error)
+	CreateRating(ctx context.Context, rating Rating) error
 	UpdateRating(ctx context.Context, ratings Rating) error
 	UpdateRatings(ctx context.Context, ratings []Rating) error
 }
@@ -63,6 +64,16 @@ func (r *RepositoryImpl) GetTopXAmongUserIDsByRating(ctx context.Context, topX i
 	}
 
 	return topXUserIDs, ratings, nil
+}
+
+func (r *RepositoryImpl) CreateRating(ctx context.Context, rating Rating) error {
+	result := r.db.WithContext(ctx).
+		Create(&rating)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (r *RepositoryImpl) UpdateRatings(ctx context.Context, ratings []Rating) error {

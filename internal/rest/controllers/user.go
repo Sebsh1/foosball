@@ -10,22 +10,9 @@ import (
 )
 
 func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
-	type deleteUserRequest struct {
-		ID uint `param:"userId" validate:"required,gte=0"`
-	}
-
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[deleteUserRequest](c)
-	if err != nil {
-		return echo.ErrBadRequest
-	}
-
-	if req.ID != c.Claims.UserID {
-		return echo.ErrUnauthorized
-	}
-
-	if err := h.userService.DeleteUser(ctx, req.ID); err != nil {
+	if err := h.userService.DeleteUser(ctx, c.Claims.UserID); err != nil {
 		h.logger.WithError(err).Error("failed to delete user")
 		return echo.ErrInternalServerError
 	}
@@ -34,10 +21,6 @@ func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
 }
 
 func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error {
-	type getUsersInOrgRequest struct {
-		OrgId uint `json:"orgId" validate:"required,gt=0"`
-	}
-
 	type responseUser struct {
 		ID    uint   `json:"id"`
 		Name  string `json:"name"`
@@ -51,16 +34,7 @@ func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[getUsersInOrgRequest](c)
-	if err != nil {
-		return echo.ErrBadRequest
-	}
-
-	if req.OrgId != c.Claims.OrganizationID {
-		return echo.ErrUnauthorized
-	}
-
-	users, err := h.userService.GetUsersInOrganization(ctx, req.OrgId)
+	users, err := h.userService.GetUsersInOrganization(ctx, c.Claims.OrganizationID)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get users in organization")
 		return echo.ErrInternalServerError
@@ -85,8 +59,7 @@ func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error
 
 func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) error {
 	type removeUserFromOrgRequest struct {
-		OrgId  uint `param:"orgId" validate:"required,gt=0"`
-		UserId uint `param:"userId" validate:"required,gte=0"`
+		UserId uint `param:"userId" validate:"required,gt=0"`
 	}
 
 	ctx := c.Request().Context()
@@ -96,17 +69,13 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 		return echo.ErrBadRequest
 	}
 
-	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID || req.UserId == c.Claims.UserID {
-		return echo.ErrUnauthorized
-	}
-
 	u, err := h.userService.GetUser(ctx, req.UserId)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get user")
 		return echo.ErrInternalServerError
 	}
 
-	if *u.OrganizationID != req.OrgId {
+	if *u.OrganizationID != c.Claims.OrganizationID {
 		return echo.ErrBadRequest
 	}
 
@@ -129,8 +98,7 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 
 func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 	type setUserAsAdminRequest struct {
-		OrgId  uint   `param:"orgId" validate:"required,gt=0"`
-		UserId uint   `param:"userId" validate:"required,gte=0"`
+		UserId uint   `param:"userId" validate:"required,gt=0"`
 		Role   string `json:"role" validate:"required,oneof=admin manager member"`
 	}
 
@@ -141,23 +109,17 @@ func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID {
-		return echo.ErrUnauthorized
-	}
-
-	users, err := h.userService.GetUsers(ctx, []uint{req.UserId})
+	u, err := h.userService.GetUser(ctx, req.UserId)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get users")
 		return echo.ErrInternalServerError
 	}
 
-	u := users[0]
-	if *u.OrganizationID != req.OrgId {
+	if *u.OrganizationID != c.Claims.OrganizationID {
 		return echo.ErrBadRequest
 	}
 
-	role := user.Role(req.Role)
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, role); err != nil {
+	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, user.Role(req.Role)); err != nil {
 		h.logger.WithError(err).Error("failed to set user as admin")
 		return echo.ErrInternalServerError
 	}
@@ -167,8 +129,7 @@ func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) AddVirtualUserToOrganization(c handlers.AuthenticatedContext) error {
 	type addVirtualUserToOrganizationRequest struct {
-		OrgId uint   `param:"orgId" validate:"required,gt=0"`
-		Name  string `json:"name" validate:"required"`
+		Name string `json:"name" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -177,12 +138,7 @@ func (h *Handlers) AddVirtualUserToOrganization(c handlers.AuthenticatedContext)
 	if err != nil {
 		return echo.ErrBadRequest
 	}
-
-	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID {
-		return echo.ErrUnauthorized
-	}
-
-	if err := h.userService.CreateVirtualUser(ctx, req.Name, req.OrgId); err != nil {
+	if err := h.userService.CreateVirtualUser(ctx, req.Name, c.Claims.OrganizationID); err != nil {
 		h.logger.WithError(err).Error("failed to create virtual user")
 		return echo.ErrInternalServerError
 	}
@@ -192,7 +148,6 @@ func (h *Handlers) AddVirtualUserToOrganization(c handlers.AuthenticatedContext)
 
 func (h *Handlers) TransferVirtualUserToUser(c handlers.AuthenticatedContext) error {
 	type transferVirtualUserToUserRequest struct {
-		OrgId         uint `param:"orgId" validate:"required,gt=0"`
 		UserId        uint `param:"userId" validate:"required,gt=0"`
 		VirtualUserId uint `param:"virtualUserId" validate:"required,gt=0"`
 	}
@@ -204,17 +159,13 @@ func (h *Handlers) TransferVirtualUserToUser(c handlers.AuthenticatedContext) er
 		return echo.ErrBadRequest
 	}
 
-	if c.Claims.Role != string(user.AdminRole) && req.OrgId == c.Claims.OrganizationID {
-		return echo.ErrUnauthorized
-	}
-
 	virtualUser, err := h.userService.GetUser(ctx, req.VirtualUserId)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get virtual user")
 		return echo.ErrInternalServerError
 	}
 
-	if *virtualUser.OrganizationID != req.OrgId || virtualUser.Role != user.VirtualRole {
+	if *virtualUser.OrganizationID != c.Claims.OrganizationID || virtualUser.Role != user.VirtualRole {
 		return echo.ErrBadRequest
 	}
 
@@ -224,7 +175,7 @@ func (h *Handlers) TransferVirtualUserToUser(c handlers.AuthenticatedContext) er
 		return echo.ErrInternalServerError
 	}
 
-	if *realUser.OrganizationID != req.OrgId || realUser.Role == user.VirtualRole {
+	if *realUser.OrganizationID != c.Claims.OrganizationID || realUser.Role == user.VirtualRole {
 		return echo.ErrBadRequest
 	}
 

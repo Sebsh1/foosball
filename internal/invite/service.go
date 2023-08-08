@@ -4,6 +4,8 @@ import (
 	"context"
 	"matchlog/internal/organization"
 	"matchlog/internal/user"
+
+	"github.com/pkg/errors"
 )
 
 type Service interface {
@@ -30,7 +32,7 @@ func NewService(repo Repository, userService user.Service, orgService organizati
 
 func (s *ServiceImpl) CreateInvites(ctx context.Context, userIDs []uint, organizationID uint) error {
 	if err := s.repo.CreateInvites(ctx, userIDs, organizationID); err != nil {
-		return err
+		return errors.Wrap(err, "failed to create invites")
 	}
 
 	return nil
@@ -39,7 +41,7 @@ func (s *ServiceImpl) CreateInvites(ctx context.Context, userIDs []uint, organiz
 func (s *ServiceImpl) GetInvitesByUserID(ctx context.Context, userID uint) ([]Invite, error) {
 	invites, err := s.repo.GetInvitesByUserID(ctx, userID)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get invites by user id")
 	}
 
 	return invites, nil
@@ -48,7 +50,7 @@ func (s *ServiceImpl) GetInvitesByUserID(ctx context.Context, userID uint) ([]In
 func (s *ServiceImpl) GetInvitesByOrganizationID(ctx context.Context, organizationID uint) ([]Invite, error) {
 	invites, err := s.repo.GetInvitesByOrganizationID(ctx, organizationID)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get invites by organization id")
 	}
 
 	return invites, nil
@@ -56,7 +58,7 @@ func (s *ServiceImpl) GetInvitesByOrganizationID(ctx context.Context, organizati
 
 func (s *ServiceImpl) DeclineInvite(ctx context.Context, id uint) error {
 	if err := s.repo.DeleteInvite(ctx, id); err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete invite")
 	}
 
 	return nil
@@ -65,20 +67,20 @@ func (s *ServiceImpl) DeclineInvite(ctx context.Context, id uint) error {
 func (s *ServiceImpl) AcceptInvite(ctx context.Context, id uint) error {
 	invite, err := s.repo.GetInvite(ctx, id)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get invite")
 	}
 
 	user, err := s.userService.GetUser(ctx, invite.UserID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get user")
 	}
 
 	if err := s.userService.UpdateUser(ctx, user.ID, user.Email, user.Name, user.Hash, &invite.OrganizationID, user.Role); err != nil {
-		return err
+		return errors.Wrap(err, "failed to update user")
 	}
 
 	if err := s.repo.DeleteInvite(ctx, id); err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete invite")
 	}
 
 	return nil

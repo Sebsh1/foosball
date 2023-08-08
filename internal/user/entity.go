@@ -11,7 +11,7 @@ const (
 	ManagerRole Role = "manager"
 	MemberRole  Role = "member"
 	VirtualRole Role = "virtual"
-	NoneRole    Role = ""
+	NoneRole    Role = "none"
 )
 
 type User struct {
@@ -22,7 +22,7 @@ type User struct {
 	Hash  string
 
 	OrganizationID *uint `gorm:"index"`
-	Role           Role  `default:"member"`
+	Role           Role  `default:"none"`
 
 	CreatedAt time.Time
 }

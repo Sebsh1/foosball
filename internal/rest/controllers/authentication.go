@@ -64,5 +64,20 @@ func (h *Handlers) Signup(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
+	exists, u, err := h.userService.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		h.logger.WithError(err).Error("failed to get user by email")
+		return echo.ErrInternalServerError
+	}
+
+	if !exists {
+		return echo.ErrInternalServerError
+	}
+
+	if err = h.statisticService.CreateStatistic(ctx, u.ID); err != nil {
+		h.logger.WithError(err).Error("failed to create statistic")
+		return echo.ErrInternalServerError
+	}
+
 	return c.NoContent(http.StatusCreated)
 }

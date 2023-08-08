@@ -37,7 +37,7 @@ func NewService(secret string, userService user.Service) Service {
 func (s *ServiceImpl) Login(ctx context.Context, email string, password string) (bool, string, error) {
 	exists, user, err := s.userService.GetUserByEmail(ctx, email)
 	if err != nil {
-		return false, "", err
+		return false, "", errors.Wrap(err, "failed to get user by email")
 	}
 
 	if !exists {
@@ -51,7 +51,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 
 	token, err := s.generateJWT(user.Name, user.ID, user.OrganizationID, string(user.Role))
 	if err != nil {
-		return false, "", err
+		return false, "", errors.Wrap(err, "failed to generate jwt")
 	}
 
 	return true, token, nil
@@ -60,7 +60,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 func (s *ServiceImpl) Signup(ctx context.Context, email string, username string, password string) (bool, error) {
 	exists, _, err := s.userService.GetUserByEmail(ctx, email)
 	if err != nil {
-		return false, err
+		return false, errors.Wrap(err, "failed to get user by email")
 	}
 
 	if exists {
@@ -69,11 +69,11 @@ func (s *ServiceImpl) Signup(ctx context.Context, email string, username string,
 
 	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
-		return false, err
+		return false, errors.Wrap(err, "failed to hash password")
 	}
 
 	if err = s.userService.CreateUser(ctx, email, username, string(hashedPasswordBytes)); err != nil {
-		return false, err
+		return false, errors.Wrap(err, "failed to create user")
 	}
 
 	return true, nil

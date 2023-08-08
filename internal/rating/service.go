@@ -9,6 +9,7 @@ import (
 
 type Service interface {
 	GetTopXAmongUserIDsByRating(ctx context.Context, topX int, userIDs []uint) (topXUserIDs []uint, ratings []int, err error)
+	CreateRating(ctx context.Context, userID uint) error
 	UpdateRatings(ctx context.Context, draw bool, winningUserIDs, losingUserIDs []uint) error
 	TransferRatings(ctx context.Context, fromUserID, toUserID uint) error
 }
@@ -30,6 +31,21 @@ func (s *ServiceImpl) GetTopXAmongUserIDsByRating(ctx context.Context, topX int,
 	}
 
 	return userIDs, ratings, nil
+}
+
+func (s *ServiceImpl) CreateRating(ctx context.Context, userID uint) error {
+	rating := Rating{
+		UserID:     userID,
+		Value:      startRating,
+		Deviation:  maxDeviation,
+		Volatility: startVolatility,
+	}
+
+	if err := s.repo.CreateRating(ctx, rating); err != nil {
+		return errors.Wrap(err, "failed to create rating")
+	}
+
+	return nil
 }
 
 func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winningUserIDs, losingUserIDs []uint) error {
@@ -54,25 +70,25 @@ func (s *ServiceImpl) UpdateRatings(ctx context.Context, draw bool, winningUserI
 		winnerResult = MatchResult{
 			OpponentRating:    loserAverageRating,
 			OpponentDeviation: loserAverageDeviation,
-			Result:            resultDraw,
+			Result:            resultMultiplierDraw,
 		}
 
 		loserResult = MatchResult{
 			OpponentRating:    winnerAverageRating,
 			OpponentDeviation: winnerAverageDeviation,
-			Result:            resultDraw,
+			Result:            resultMultiplierDraw,
 		}
 	} else {
 		winnerResult = MatchResult{
 			OpponentRating:    loserAverageRating,
 			OpponentDeviation: loserAverageDeviation,
-			Result:            resultWin,
+			Result:            resultMultiplierWin,
 		}
 
 		loserResult = MatchResult{
 			OpponentRating:    winnerAverageRating,
 			OpponentDeviation: winnerAverageDeviation,
-			Result:            resultLoss,
+			Result:            resultMultiplierLoss,
 		}
 	}
 

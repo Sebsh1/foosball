@@ -9,6 +9,7 @@ import (
 type Service interface {
 	GetStatisticByUserID(ctx context.Context, userID uint) (*Statistic, error)
 	GetTopXAmongUserIDsByMeasure(ctx context.Context, topX int, userIDs []uint, measure Measure) (topXUserIDs []uint, values []int, err error)
+	CreateStatistic(ctx context.Context, userID uint) error
 	UpdateStatisticsByUserIDs(ctx context.Context, userIDs []uint, result MatchResult) error
 	TransferStatistics(ctx context.Context, fromUserID, toUserID uint) error
 }
@@ -58,6 +59,14 @@ func (s *ServiceImpl) GetTopXAmongUserIDsByMeasure(ctx context.Context, topX int
 	}
 
 	return topXUserIDs, values, nil
+}
+
+func (s *ServiceImpl) CreateStatistic(ctx context.Context, userID uint) error {
+	if err := s.repo.CreateStatistic(ctx, userID); err != nil {
+		return errors.Wrapf(err, "failed to create statistics for user %d", userID)
+	}
+
+	return nil
 }
 
 func (s *ServiceImpl) UpdateStatisticsByUserIDs(ctx context.Context, userIDs []uint, result MatchResult) error {
