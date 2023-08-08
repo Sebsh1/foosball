@@ -4,6 +4,10 @@ info:
   title: MatchLog
   version: 1.0.0
   description: Endpoints for interacting with MatchLog
+  contact:
+    name: Sebastian Holmgaard
+    url: https://github.com/Sebsh1/matchlog
+    email: sebholmgaard@gmail.com
 
 servers:
   - url: https://matchlog/api
@@ -321,12 +325,6 @@ paths:
       description: |
         Endpoint for inviting a user to an organization.
         Only admins of the organization can invite users.
-      parameters:
-        - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
@@ -395,11 +393,6 @@ paths:
         Only admins of the organization can remove users.
       parameters:
         - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
-        - in: path
           name: userId
           required: true
           schema:
@@ -444,7 +437,7 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/users/{userId]/virtual/{virtualUserId}:
+  /organization/users/{userId}/virtual/{virtualUserId}:
     post:
       operationId: TransferVirtualUserToUser
       tags:
@@ -535,11 +528,6 @@ paths:
         Also called a leaderboard.
         Only users in the organization can get the top X players.
       parameters:
-        - in: path
-          name: orgId
-          required: true
-          schema:
-            type: integer
         - in: path
           name: topX
           required: true
