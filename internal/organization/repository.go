@@ -17,7 +17,7 @@ var (
 
 type Repository interface {
 	GetOrganization(ctx context.Context, id uint) (*Organization, error)
-	CreateOrganization(ctx context.Context, organization *Organization) error
+	CreateOrganization(ctx context.Context, organization *Organization) (orgID uint, err error)
 	DeleteOrganization(ctx context.Context, id uint) error
 	UpdateOrganization(ctx context.Context, id uint, name string) error
 }
@@ -47,19 +47,19 @@ func (r *RepositoryImpl) GetOrganization(ctx context.Context, id uint) (*Organiz
 	return &org, nil
 }
 
-func (r *RepositoryImpl) CreateOrganization(ctx context.Context, organization *Organization) error {
+func (r *RepositoryImpl) CreateOrganization(ctx context.Context, organization *Organization) (uint, error) {
 	result := r.db.WithContext(ctx).
 		Create(&organization)
 	if result.Error != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(result.Error, &mysqlErr) && mysqlErr.Number == ErrCodeMySQLDuplicateEntry {
-			return ErrDuplicateEntry
+			return 0, ErrDuplicateEntry
 		}
 
-		return result.Error
+		return 0, result.Error
 	}
 
-	return nil
+	return organization.ID, nil
 }
 
 func (r *RepositoryImpl) DeleteOrganization(ctx context.Context, id uint) error {

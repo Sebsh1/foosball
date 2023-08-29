@@ -8,7 +8,7 @@ import (
 
 type Service interface {
 	GetOrganization(ctx context.Context, id uint) (*Organization, error)
-	CreateOrganization(ctx context.Context, name string) error
+	CreateOrganization(ctx context.Context, name string) (orgID uint, err error)
 	DeleteOrganization(ctx context.Context, id uint) error
 	UpdateOrganization(ctx context.Context, id uint, name string) error
 }
@@ -32,16 +32,17 @@ func (s *ServiceImpl) GetOrganization(ctx context.Context, id uint) (*Organizati
 	return org, nil
 }
 
-func (s *ServiceImpl) CreateOrganization(ctx context.Context, name string) error {
+func (s *ServiceImpl) CreateOrganization(ctx context.Context, name string) (uint, error) {
 	org := &Organization{
 		Name: name,
 	}
 
-	if err := s.repo.CreateOrganization(ctx, org); err != nil {
-		return errors.Wrap(err, "failed to create organization")
+	orgID, err := s.repo.CreateOrganization(ctx, org)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to create organization")
 	}
 
-	return nil
+	return orgID, nil
 }
 
 func (s *ServiceImpl) DeleteOrganization(ctx context.Context, id uint) error {

@@ -3,6 +3,7 @@ package controllers
 import (
 	"matchlog/internal/rest/handlers"
 	"matchlog/internal/rest/helpers"
+	"matchlog/internal/user"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -24,8 +25,20 @@ func (h *Handlers) CreateOrganization(c handlers.AuthenticatedContext) error {
 		return echo.ErrForbidden
 	}
 
-	if err := h.organizationService.CreateOrganization(ctx, req.Name); err != nil {
+	orgID, err := h.organizationService.CreateOrganization(ctx, req.Name)
+	if err != nil {
 		h.logger.WithError(err).Error("failed to create organization")
+		return echo.ErrInternalServerError
+	}
+
+	userInfo, err := h.userService.GetUser(ctx, c.Claims.UserID)
+	if err != nil {
+		h.logger.WithError(err).Error("failed to get user")
+		return echo.ErrInternalServerError
+	}
+
+	if err := h.userService.UpdateUser(ctx, userInfo.ID, userInfo.Email, userInfo.Name, userInfo.Hash, &orgID, user.AdminRole); err != nil {
+		h.logger.WithError(err).Error("failed to add user to organization")
 		return echo.ErrInternalServerError
 	}
 

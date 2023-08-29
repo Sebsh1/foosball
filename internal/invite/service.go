@@ -70,12 +70,12 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, id uint) error {
 		return errors.Wrap(err, "failed to get invite")
 	}
 
-	user, err := s.userService.GetUser(ctx, invite.UserID)
+	u, err := s.userService.GetUser(ctx, invite.UserID)
 	if err != nil {
 		return errors.Wrap(err, "failed to get user")
 	}
 
-	if err := s.userService.UpdateUser(ctx, user.ID, user.Email, user.Name, user.Hash, &invite.OrganizationID, user.Role); err != nil {
+	if err := s.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, &invite.OrganizationID, user.MemberRole); err != nil {
 		return errors.Wrap(err, "failed to update user")
 	}
 

@@ -39,16 +39,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: "Bearer token from MatchLog"
-  schemas:
-    Invite:
-      type: object
-      properties:
-        organizationId:
-          type: integer
-          example: 123456
-        userId:
-          type: integer
-          example: 123456
 
 paths:
   /login:
@@ -158,7 +148,14 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Invite"
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 123
+                    organization_id:
+                      type: integer
+                      example: 123
         "400":
           description: "Bad Request"
         "401":
@@ -292,7 +289,8 @@ paths:
       security:
         - JWT: []
       description: |
-        Endpoint for creating an organization.
+        Endpoint for creating an organization. The user creating the organization will be set as an admin.
+        The session should be reauthenticated after creating an organization to get updated claims.
       requestBody:
         required: true
         content:
@@ -323,7 +321,7 @@ paths:
       security:
         - JWT: []
       description: |
-        Endpoint for inviting a user to an organization.
+        Endpoint for inviting a list of users to an organization.
         Only admins of the organization can invite users.
       requestBody:
         required: true
@@ -337,13 +335,11 @@ paths:
                   example: "user@matchlog.com"
       responses:
         "201":
-          description: "User invited"
+          description: "Users invited"
         "400":
           description: "Bad Request"
         "401":
           description: "Unauthorized"
-        "404":
-          description: "Not Found. One or more users not found"
         "500":
           description: "Internal Server Error"
 

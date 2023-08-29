@@ -11,8 +11,8 @@ import (
 
 func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 	type responseInvite struct {
-		OrganizationID uint `json:"organizationId"`
-		UserID         uint `json:"userId"`
+		InviteID       uint `json:"invite_id"`
+		OrganizationID uint `json:"organization_id"`
 	}
 
 	type getUserInvitesResponse struct {
@@ -30,8 +30,8 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 	respInvites := make([]responseInvite, len(invites))
 	for i, invite := range invites {
 		respInvites[i] = responseInvite{
+			InviteID:       invite.ID,
 			OrganizationID: invite.OrganizationID,
-			UserID:         invite.UserID,
 		}
 	}
 
@@ -45,7 +45,7 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 	type acceptInviteRequest struct {
 		InviteID uint `param:"inviteId" validate:"required,gte=0"`
-		Accepted bool `json:"accepted" validate:"required"`
+		Accept   bool `json:"accept" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
@@ -55,7 +55,7 @@ func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if req.Accepted {
+	if req.Accept {
 		if err := h.inviteService.AcceptInvite(ctx, req.InviteID); err != nil {
 			if err == invite.ErrNotFound {
 				return echo.ErrNotFound
@@ -92,17 +92,21 @@ func (h *Handlers) InviteUsersToOrganization(c handlers.AuthenticatedContext) er
 
 	userIDs := make([]uint, len(req.Emails))
 	for _, email := range req.Emails {
-		exists, user, err := h.userService.GetUserByEmail(ctx, email)
+		exists, u, err := h.userService.GetUserByEmail(ctx, email)
 		if err != nil {
 			h.logger.WithError(err).Error("failed to get user by email")
 			return echo.ErrInternalServerError
 		}
 
 		if !exists {
-			return echo.ErrNotFound
+			continue
 		}
 
-		userIDs = append(userIDs, user.ID)
+		if u.OrganizationID != nil && *u.OrganizationID == c.Claims.OrganizationID {
+			continue
+		}
+
+		userIDs = append(userIDs, u.ID)
 	}
 
 	if err := h.inviteService.CreateInvites(ctx, userIDs, c.Claims.OrganizationID); err != nil {

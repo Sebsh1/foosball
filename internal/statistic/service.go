@@ -76,7 +76,6 @@ func (s *ServiceImpl) UpdateStatisticsByUserIDs(ctx context.Context, userIDs []u
 	}
 
 	updatedStatistics := make([]Statistic, len(userIDs))
-
 	for i := range userIDs {
 		stats := oldStatistics[i]
 
