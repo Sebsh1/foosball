@@ -6,7 +6,7 @@ rest:
   port: 8001
 
 db:
-  dsn: matchlog:supersecret@tcp(localhost:3307)/matchlog?charset=utf8&parseTime=True
+  dsn: "host=localhost user=matchlog password=supersecret dbname=matchlog port=3307 sslmode=disable TimeZone=Europe/Berlin"
 
 authentication:
   secret: supersecret
