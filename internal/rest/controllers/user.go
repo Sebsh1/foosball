@@ -13,7 +13,8 @@ func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
 	ctx := c.Request().Context()
 
 	if err := h.userService.DeleteUser(ctx, c.Claims.UserID); err != nil {
-		h.logger.WithError(err).Error("failed to delete user")
+		h.logger.Error("failed to delete user",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -36,7 +37,8 @@ func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error
 
 	users, err := h.userService.GetUsersInOrganization(ctx, c.Claims.OrganizationID)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get users in organization")
+		h.logger.Error("failed to get users in organization",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -71,7 +73,8 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 
 	u, err := h.userService.GetUser(ctx, req.UserId)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get user")
+		h.logger.Error("failed to get user",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -81,7 +84,8 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 
 	if u.Role == user.VirtualRole {
 		if err := h.userService.DeleteUser(ctx, u.ID); err != nil {
-			h.logger.WithError(err).Error("failed to delete virtual user")
+			h.logger.Error("failed to delete virtual user",
+				"error", err)
 			return echo.ErrInternalServerError
 		}
 
@@ -89,7 +93,8 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 	}
 
 	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, nil, user.NoneRole); err != nil {
-		h.logger.WithError(err).Error("failed to remove user from organization")
+		h.logger.Error("failed to remove user from organization",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -111,7 +116,8 @@ func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 
 	u, err := h.userService.GetUser(ctx, req.UserId)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get users")
+		h.logger.Error("failed to get users",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -120,7 +126,8 @@ func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 	}
 
 	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, user.Role(req.Role)); err != nil {
-		h.logger.WithError(err).Error("failed to set user as admin")
+		h.logger.Error("failed to set user as admin",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -139,7 +146,8 @@ func (h *Handlers) AddVirtualUserToOrganization(c handlers.AuthenticatedContext)
 		return echo.ErrBadRequest
 	}
 	if err := h.userService.CreateVirtualUser(ctx, req.Name, c.Claims.OrganizationID); err != nil {
-		h.logger.WithError(err).Error("failed to create virtual user")
+		h.logger.Error("failed to create virtual user",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -161,7 +169,8 @@ func (h *Handlers) TransferVirtualUserToUser(c handlers.AuthenticatedContext) er
 
 	virtualUser, err := h.userService.GetUser(ctx, req.VirtualUserId)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get virtual user")
+		h.logger.Error("failed to get virtual user",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -171,7 +180,8 @@ func (h *Handlers) TransferVirtualUserToUser(c handlers.AuthenticatedContext) er
 
 	realUser, err := h.userService.GetUser(ctx, req.UserId)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get user")
+		h.logger.Error("failed to get user",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -180,17 +190,20 @@ func (h *Handlers) TransferVirtualUserToUser(c handlers.AuthenticatedContext) er
 	}
 
 	if err := h.ratingService.TransferRatings(ctx, req.VirtualUserId, req.UserId); err != nil {
-		h.logger.WithError(err).Error("failed to transfer ratings")
+		h.logger.Error("failed to transfer ratings",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
 	if err := h.statisticService.TransferStatistics(ctx, req.VirtualUserId, req.UserId); err != nil {
-		h.logger.WithError(err).Error("failed to transfer statistics")
+		h.logger.Error("failed to transfer statistics",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
 	if err := h.userService.DeleteUser(ctx, req.VirtualUserId); err != nil {
-		h.logger.WithError(err).Error("failed to delete virtual user")
+		h.logger.Error("failed to delete virtual user",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 

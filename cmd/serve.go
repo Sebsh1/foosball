@@ -16,8 +16,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 // serveCmd represents the serve command.
@@ -36,7 +36,7 @@ func serve(cmd *cobra.Command, args []string) {
 
 	config, err := loadConfig()
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to load config")
+		zap.L().Fatal("Failed to load config", zap.Error(err))
 	}
 
 	l := GetLogger(config.Log)
@@ -44,7 +44,8 @@ func serve(cmd *cobra.Command, args []string) {
 	// Initialize database connection
 	db, err := database.NewClient(ctx, config.DB.DSN)
 	if err != nil {
-		l.WithError(err).Fatal("Failed to connect to database")
+		l.Fatal("Failed to connect to database",
+			"error", err)
 	}
 
 	// Initialize User service
@@ -91,17 +92,19 @@ func serve(cmd *cobra.Command, args []string) {
 		leaderboardService,
 	)
 	if err != nil {
-		l.WithError(err).Fatal("Failed to create rest server")
+		l.Fatal("Failed to create rest server",
+			"error", err)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	// Start the REST server
-	l.WithField("port", config.Rest.Port).Info("REST server starting")
+	l.Info("REST server starting", zap.Int("port", config.Rest.Port))
 	go func() {
 		if err := restServer.Start(); err != nil {
-			l.WithError(err).Error("Failed to start rest server")
+			l.Fatal("Failed to start rest server",
+				"error", err)
 			cancel()
 		}
 	}()
@@ -117,6 +120,7 @@ func serve(cmd *cobra.Command, args []string) {
 	defer stop()
 
 	if err := restServer.Shutdown(shutdownctx); err != nil {
-		l.WithError(err).Error("Failed to shutdown rest server")
+		l.Error("Failed to shutdown rest server",
+			"error", err)
 	}
 }

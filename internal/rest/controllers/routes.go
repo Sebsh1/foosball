@@ -13,11 +13,11 @@ import (
 	"matchlog/internal/user"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 type Handlers struct {
-	logger              *logrus.Entry
+	logger              *zap.SugaredLogger
 	authService         authentication.Service
 	userService         user.Service
 	organizationService organization.Service
@@ -30,7 +30,7 @@ type Handlers struct {
 
 func Register(
 	e *echo.Group,
-	logger *logrus.Entry,
+	logger *zap.SugaredLogger,
 	authService authentication.Service,
 	userService user.Service,
 	organizationService organization.Service,

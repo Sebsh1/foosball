@@ -26,7 +26,8 @@ func (h *Handlers) Login(c echo.Context) error {
 
 	correct, token, err := h.authService.Login(ctx, req.Email, req.Password)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to login")
+		h.logger.Error("failed to login",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -56,7 +57,8 @@ func (h *Handlers) Signup(c echo.Context) error {
 
 	success, err := h.authService.Signup(ctx, req.Email, req.Name, req.Password)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to signup")
+		h.logger.Error("failed to signup",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -66,7 +68,8 @@ func (h *Handlers) Signup(c echo.Context) error {
 
 	exists, u, err := h.userService.GetUserByEmail(ctx, req.Email)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get user by email")
+		h.logger.Error("failed to get user by email",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -75,7 +78,8 @@ func (h *Handlers) Signup(c echo.Context) error {
 	}
 
 	if err = h.statisticService.CreateStatistic(ctx, u.ID); err != nil {
-		h.logger.WithError(err).Error("failed to create statistic")
+		h.logger.Error("failed to create statistic",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 

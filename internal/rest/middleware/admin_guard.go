@@ -5,11 +5,11 @@ import (
 	"matchlog/internal/user"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
-func AdminGuard(logger *logrus.Entry) func(next echo.HandlerFunc) echo.HandlerFunc {
-	l := logger.WithField("middleware", "admin_guard")
+func AdminGuard(logger *zap.SugaredLogger) func(next echo.HandlerFunc) echo.HandlerFunc {
+	l := logger.With("middleware", "admin_guard")
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -21,12 +21,10 @@ func AdminGuard(logger *logrus.Entry) func(next echo.HandlerFunc) echo.HandlerFu
 			}
 
 			if claims.Role != string(user.AdminRole) {
-				l.WithFields(logrus.Fields{
-					"Name":           claims.Name,
-					"UserID":         claims.UserID,
-					"OrganizationID": claims.OrganizationID,
-					"Role":           claims.Role,
-				}).Debug("user attempted to perform admin action without admin role")
+				l.Debug("user attempted to perform admin action without admin role",
+					"name", claims.Name,
+					"user_id", claims.UserID,
+					"org_id", claims.OrganizationID)
 
 				return echo.ErrForbidden
 			}

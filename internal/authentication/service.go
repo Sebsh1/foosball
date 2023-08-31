@@ -8,7 +8,6 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -41,7 +40,6 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 	}
 
 	if !exists {
-		logrus.WithField("email", email).Debug("user does not exist")
 		return false, "", nil
 	}
 

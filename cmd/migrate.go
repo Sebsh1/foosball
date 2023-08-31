@@ -6,8 +6,8 @@ import (
 	"matchlog/pkg/database"
 
 	"github.com/go-gormigrate/gormigrate/v2"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 var migrateCmd = &cobra.Command{
@@ -25,14 +25,15 @@ func migrate(cmd *cobra.Command, args []string) {
 
 	config, err := loadConfig()
 	if err != nil {
-		logrus.WithError(err).Fatal("failed to load config")
+		zap.L().Fatal("failed to load config", zap.Error(err))
 	}
 
 	l := GetLogger(config.Log)
 
 	db, err := database.NewClient(ctx, config.DB.DSN)
 	if err != nil {
-		l.WithError(err).Fatal("failed to connect to database")
+		l.Fatal("failed to connect to database",
+			"error", err)
 	}
 
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
@@ -40,8 +41,9 @@ func migrate(cmd *cobra.Command, args []string) {
 	})
 
 	if err = m.Migrate(); err != nil {
-		logrus.WithError(err).Fatal("Migration failed")
+		l.Fatal("Migration failed",
+			"error", err)
 	}
 
-	logrus.Println("Migration finished successfully")
+	zap.L().Info("Migration finished successfully")
 }

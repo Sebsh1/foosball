@@ -28,7 +28,8 @@ func (h *Handlers) GetLeaderboard(c handlers.AuthenticatedContext) error {
 
 	leaderboard, err := h.leaderboardService.GetLeaderboard(ctx, c.Claims.OrganizationID, req.TopX, req.LeaderboardType)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get leaderboard")
+		h.logger.Error("failed to get leaderboard",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 

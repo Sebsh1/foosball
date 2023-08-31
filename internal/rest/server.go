@@ -17,7 +17,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -31,7 +31,7 @@ type Server struct {
 
 func NewServer(
 	port int,
-	logger *logrus.Logger,
+	logger *zap.SugaredLogger,
 	authService authentication.Service,
 	userService user.Service,
 	organizationService organization.Service,
@@ -62,7 +62,7 @@ func NewServer(
 
 	controllers.Register(
 		root,
-		logger.WithField("module", "rest"),
+		logger.With("module", "rest"),
 		authService,
 		userService,
 		organizationService,

@@ -33,24 +33,28 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 	result, winners, losers := h.matchService.DetermineResult(ctx, req.TeamA, req.TeamB, req.ScoresA, req.ScoresB)
 
 	if err = h.matchService.CreateMatch(ctx, req.TeamA, req.TeamB, req.ScoresA, req.ScoresB, result); err != nil {
-		h.logger.WithError(err).Error("failed to create match")
+		h.logger.Error("failed to create match",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
 	if result == match.Draw {
 		allPlayers := append(req.TeamA, req.TeamB...)
 		if err := h.statisticService.UpdateStatisticsByUserIDs(ctx, allPlayers, statistic.ResultDraw); err != nil {
-			h.logger.WithError(err).Error("failed to update statistics for draw")
+			h.logger.Error("failed to update statistics for draw",
+				"error", err)
 			return echo.ErrInternalServerError
 		}
 	} else {
 		if err := h.statisticService.UpdateStatisticsByUserIDs(ctx, winners, statistic.ResultWin); err != nil {
-			h.logger.WithError(err).Error("failed to update statistics for winners")
+			h.logger.Error("failed to update statistics for winners",
+				"error", err)
 			return echo.ErrInternalServerError
 		}
 
 		if err := h.statisticService.UpdateStatisticsByUserIDs(ctx, losers, statistic.ResultLoss); err != nil {
-			h.logger.WithError(err).Error("failed to update statistics for losers")
+			h.logger.Error("failed to update statistics for losers",
+				"error", err)
 			return echo.ErrInternalServerError
 		}
 	}
@@ -61,7 +65,8 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 
 	isDraw := result == match.Draw
 	if err := h.ratingService.UpdateRatings(ctx, isDraw, winners, losers); err != nil {
-		h.logger.WithError(err).Error("failed to update ratings")
+		h.logger.Error("failed to update ratings",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 

@@ -23,7 +23,8 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 
 	invites, err := h.inviteService.GetInvitesByUserID(ctx, c.Claims.UserID)
 	if err != nil {
-		h.logger.WithError(err).Error("failed to get user invites")
+		h.logger.Error("failed to get user invites",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 
@@ -61,7 +62,8 @@ func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 				return echo.ErrNotFound
 			}
 
-			h.logger.WithError(err).Error("failed to accept invite")
+			h.logger.Error("failed to accept invite",
+				"error", err)
 			return echo.ErrInternalServerError
 		}
 	} else {
@@ -70,7 +72,8 @@ func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 				return echo.ErrNotFound
 			}
 
-			h.logger.WithError(err).Error("failed to decline invite")
+			h.logger.Error("failed to decline invite",
+				"error", err)
 			return echo.ErrInternalServerError
 		}
 	}
@@ -94,7 +97,8 @@ func (h *Handlers) InviteUsersToOrganization(c handlers.AuthenticatedContext) er
 	for _, email := range req.Emails {
 		exists, u, err := h.userService.GetUserByEmail(ctx, email)
 		if err != nil {
-			h.logger.WithError(err).Error("failed to get user by email")
+			h.logger.Error("failed to get user by email",
+				"error", err)
 			return echo.ErrInternalServerError
 		}
 
@@ -110,7 +114,8 @@ func (h *Handlers) InviteUsersToOrganization(c handlers.AuthenticatedContext) er
 	}
 
 	if err := h.inviteService.CreateInvites(ctx, userIDs, c.Claims.OrganizationID); err != nil {
-		h.logger.WithError(err).Error("failed to create invites")
+		h.logger.Error("failed to create invites",
+			"error", err)
 		return echo.ErrInternalServerError
 	}
 

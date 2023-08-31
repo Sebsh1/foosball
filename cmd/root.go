@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"matchlog/internal/authentication"
 	"matchlog/internal/rest"
@@ -12,9 +13,9 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/mcuadros/go-defaults"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var cfgFile string
@@ -29,8 +30,8 @@ type Config struct {
 }
 
 type LogConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level    string `mapstructure:"level"`
+	Encoding string `mapstructure:"encoding"`
 }
 
 var rootCmd = &cobra.Command{
@@ -42,7 +43,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		logrus.WithError(err).Fatal("Failed to execute root command")
+		zap.L().Fatal("Failed to execute root command", zap.Error(err))
 	}
 }
 
@@ -61,7 +62,7 @@ func initConfig() {
 	}
 
 	if err := viper.ReadInConfig(); err == nil {
-		logrus.Info("Using config file: ", viper.ConfigFileUsed())
+		zap.L().Info("Using config", zap.String("file", viper.ConfigFileUsed()))
 	}
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -92,22 +93,29 @@ func loadConfig(configs ...string) (*Config, error) {
 	return &config, nil
 }
 
-func GetLogger(config LogConfig) *logrus.Logger {
-	logger := logrus.New()
-	lvl, err := logrus.ParseLevel(config.Level)
-	if err != nil {
-		lvl = logrus.InfoLevel
-		logger.WithError(err).Warnf("Failed to parse log level, setting log level to '%s'", lvl)
-	}
-	logger.SetLevel(lvl)
-	switch config.Format {
-	case "json":
-		logger.SetFormatter(&logrus.JSONFormatter{})
-	case "text":
-		logger.SetFormatter(&logrus.TextFormatter{})
+func GetLogger(config LogConfig) *zap.SugaredLogger {
+	configString := fmt.Sprintf(`{
+		"level": "%s",
+		"encoding": "%s",
+		"outputPaths": ["stdout"],
+		"errorOutputPaths": ["stderr"],
+		"encoderConfig": {
+		  "messageKey": "message",
+		  "levelKey": "level",
+		  "levelEncoder": "lowercase"
+		}
+	  }`, config.Level, config.Encoding)
+	var cfg zap.Config
+	if err := json.Unmarshal([]byte(configString), &cfg); err != nil {
+		panic(err)
 	}
 
-	return logger
+	logger, err := cfg.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	return logger.Sugar()
 }
 
 // Adapted from https://github.com/spf13/viper/issues/188#issuecomment-401431526
@@ -128,7 +136,7 @@ func bindEnvs(iface interface{}, parts ...string) {
 			bindEnvs(fieldv.Interface(), parts...)
 		default:
 			if err := viper.BindEnv(strings.Join(parts, ".")); err != nil {
-				logrus.WithError(err).Fatalf("Failed to bind environment variable for '%s'", strings.Join(parts, "."))
+				zap.L().Fatal("Failed to bind environment variable", zap.String("variable", strings.Join(parts, ".")), zap.Error(err))
 			}
 		}
 	}
