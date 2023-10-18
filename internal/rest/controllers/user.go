@@ -3,7 +3,6 @@ package controllers
 import (
 	"matchlog/internal/rest/handlers"
 	"matchlog/internal/rest/helpers"
-	"matchlog/internal/user"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -21,79 +20,21 @@ func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handlers) GetUsersInOrganization(c handlers.AuthenticatedContext) error {
-	type responseUser struct {
-		ID    uint   `json:"id"`
-		Name  string `json:"name"`
-		Email string `json:"email"`
-		Role  string `json:"role"`
-	}
-
-	type getUsersInOrgResponse struct {
-		Users []responseUser `json:"users"`
-	}
-
-	ctx := c.Request().Context()
-
-	users, err := h.userService.GetUsersInOrganization(ctx, c.Claims.OrganizationID)
-	if err != nil {
-		h.logger.Error("failed to get users in organization",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
-	respUsers := make([]responseUser, len(users))
-	for i, u := range users {
-		respUsers[i] = responseUser{
-			ID:    u.ID,
-			Name:  u.Name,
-			Email: u.Email,
-			Role:  string(u.Role),
-		}
-	}
-
-	reponse := getUsersInOrgResponse{
-		Users: respUsers,
-	}
-
-	return c.JSON(http.StatusOK, reponse)
-}
-
-func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) error {
-	type removeUserFromOrgRequest struct {
+func (h *Handlers) RemoveUserFromClub(c handlers.AuthenticatedContext) error {
+	type request struct {
 		UserId uint `param:"userId" validate:"required,gt=0"`
+		ClubID uint `param:"ClubId" validate:"required,gt=0"`
 	}
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[removeUserFromOrgRequest](c)
+	req, err := helpers.Bind[request](c)
 	if err != nil {
 		return echo.ErrBadRequest
 	}
 
-	u, err := h.userService.GetUser(ctx, req.UserId)
-	if err != nil {
-		h.logger.Error("failed to get user",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
-	if *u.OrganizationID != c.Claims.OrganizationID {
-		return echo.ErrBadRequest
-	}
-
-	if u.Role == user.VirtualRole {
-		if err := h.userService.DeleteUser(ctx, u.ID); err != nil {
-			h.logger.Error("failed to delete virtual user",
-				"error", err)
-			return echo.ErrInternalServerError
-		}
-
-		return c.NoContent(http.StatusOK)
-	}
-
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, nil, user.NoneRole); err != nil {
-		h.logger.Error("failed to remove user from organization",
+	if err := h.ClubService.RemoveUserFromClub(ctx, req.UserId, req.ClubID); err != nil {
+		h.logger.Error("failed to remove user from Club",
 			"error", err)
 		return echo.ErrInternalServerError
 	}
@@ -101,51 +42,18 @@ func (h *Handlers) RemoveUserFromOrganization(c handlers.AuthenticatedContext) e
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
-	type setUserAsAdminRequest struct {
-		UserId uint   `param:"userId" validate:"required,gt=0"`
-		Role   string `json:"role" validate:"required,oneof=admin manager member"`
-	}
-
-	ctx := c.Request().Context()
-
-	req, err := helpers.Bind[setUserAsAdminRequest](c)
-	if err != nil {
-		return echo.ErrBadRequest
-	}
-
-	u, err := h.userService.GetUser(ctx, req.UserId)
-	if err != nil {
-		h.logger.Error("failed to get users",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
-	if *u.OrganizationID != c.Claims.OrganizationID {
-		return echo.ErrBadRequest
-	}
-
-	if err := h.userService.UpdateUser(ctx, u.ID, u.Email, u.Name, u.Hash, u.OrganizationID, user.Role(req.Role)); err != nil {
-		h.logger.Error("failed to set user as admin",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handlers) AddVirtualUserToOrganization(c handlers.AuthenticatedContext) error {
-	type addVirtualUserToOrganizationRequest struct {
+func (h *Handlers) AddVirtualUserToClub(c handlers.AuthenticatedContext) error {
+	type request struct {
 		Name string `json:"name" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[addVirtualUserToOrganizationRequest](c)
+	req, err := helpers.Bind[request](c)
 	if err != nil {
 		return echo.ErrBadRequest
 	}
-	if err := h.userService.CreateVirtualUser(ctx, req.Name, c.Claims.OrganizationID); err != nil {
+	if err := h.userService.CreateVirtualUser(ctx, req.Name); err != nil {
 		h.logger.Error("failed to create virtual user",
 			"error", err)
 		return echo.ErrInternalServerError
@@ -154,55 +62,21 @@ func (h *Handlers) AddVirtualUserToOrganization(c handlers.AuthenticatedContext)
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handlers) TransferVirtualUserToUser(c handlers.AuthenticatedContext) error {
-	type transferVirtualUserToUserRequest struct {
-		UserId        uint `param:"userId" validate:"required,gt=0"`
-		VirtualUserId uint `param:"virtualUserId" validate:"required,gt=0"`
+func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
+	type request struct {
+		InviteID uint `param:"inviteId" validate:"required,gt=0"`
+		Accept   bool `json:"accept" validate:"required"`
 	}
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[transferVirtualUserToUserRequest](c)
+	req, err := helpers.Bind[request](c)
 	if err != nil {
 		return echo.ErrBadRequest
 	}
 
-	virtualUser, err := h.userService.GetUser(ctx, req.VirtualUserId)
-	if err != nil {
-		h.logger.Error("failed to get virtual user",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
-	if *virtualUser.OrganizationID != c.Claims.OrganizationID || virtualUser.Role != user.VirtualRole {
-		return echo.ErrBadRequest
-	}
-
-	realUser, err := h.userService.GetUser(ctx, req.UserId)
-	if err != nil {
-		h.logger.Error("failed to get user",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
-	if *realUser.OrganizationID != c.Claims.OrganizationID || realUser.Role == user.VirtualRole {
-		return echo.ErrBadRequest
-	}
-
-	if err := h.ratingService.TransferRatings(ctx, req.VirtualUserId, req.UserId); err != nil {
-		h.logger.Error("failed to transfer ratings",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
-	if err := h.statisticService.TransferStatistics(ctx, req.VirtualUserId, req.UserId); err != nil {
-		h.logger.Error("failed to transfer statistics",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
-	if err := h.userService.DeleteUser(ctx, req.VirtualUserId); err != nil {
-		h.logger.Error("failed to delete virtual user",
+	if err := h.clubService.RespondToInvite(ctx, req.InviteID, req.Accept); err != nil {
+		h.logger.Error("failed to respond to invite",
 			"error", err)
 		return echo.ErrInternalServerError
 	}

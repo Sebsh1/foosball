@@ -8,7 +8,7 @@ I currently have a frontend in its infancy as I try to learn how to frontend. :)
 
 ### Features
 This repository has a complete backend and REST API for logging matches to a database including
-- Organizing users into organizations
+- Organizing users into Clubs
 - Calculating ratings using a customized Glicko-2 rating system
 - Keeping track of player statistics including various leaderboards
 

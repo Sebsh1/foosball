@@ -2,10 +2,9 @@ package controllers
 
 import (
 	"matchlog/internal/authentication"
-	"matchlog/internal/invite"
+	"matchlog/internal/club"
 	"matchlog/internal/leaderboard"
 	"matchlog/internal/match"
-	"matchlog/internal/organization"
 	"matchlog/internal/rating"
 	"matchlog/internal/rest/handlers"
 	"matchlog/internal/rest/middleware"
@@ -17,15 +16,14 @@ import (
 )
 
 type Handlers struct {
-	logger              *zap.SugaredLogger
-	authService         authentication.Service
-	userService         user.Service
-	organizationService organization.Service
-	inviteService       invite.Service
-	matchService        match.Service
-	ratingService       rating.Service
-	statisticService    statistic.Service
-	leaderboardService  leaderboard.Service
+	logger             *zap.SugaredLogger
+	authService        authentication.Service
+	userService        user.Service
+	clubService        club.Service
+	matchService       match.Service
+	ratingService      rating.Service
+	statisticService   statistic.Service
+	leaderboardService leaderboard.Service
 }
 
 func Register(
@@ -33,29 +31,26 @@ func Register(
 	logger *zap.SugaredLogger,
 	authService authentication.Service,
 	userService user.Service,
-	organizationService organization.Service,
-	inviteService invite.Service,
+	clubService club.Service,
 	matchService match.Service,
 	ratingService rating.Service,
 	statisticService statistic.Service,
 	leaderboardService leaderboard.Service,
 ) {
 	h := &Handlers{
-		logger:              logger,
-		authService:         authService,
-		userService:         userService,
-		organizationService: organizationService,
-		inviteService:       inviteService,
-		matchService:        matchService,
-		ratingService:       ratingService,
-		statisticService:    statisticService,
-		leaderboardService:  leaderboardService,
+		logger:             logger,
+		authService:        authService,
+		userService:        userService,
+		clubService:        clubService,
+		matchService:       matchService,
+		ratingService:      ratingService,
+		statisticService:   statisticService,
+		leaderboardService: leaderboardService,
 	}
 
 	authHandler := handlers.AuthenticatedHandlerFactory(logger)
 
 	authGuard := middleware.AuthGuard(authService)
-	adminGuard := middleware.AdminGuard(logger)
 
 	// Authentication
 	e.POST("/login", h.Login)
@@ -66,16 +61,16 @@ func Register(
 	e.GET("/user/invites", authHandler(h.GetUserInvites), authGuard)
 	e.POST("/user/invites/:inviteId", authHandler(h.RespondToInvite), authGuard)
 
-	// Organizations
-	e.POST("/organization", authHandler(h.CreateOrganization), authGuard)
-	e.PUT("/organization", authHandler(h.UpdateOrganization), authGuard, adminGuard)
-	e.DELETE("/organization", authHandler(h.DeleteOrganization), authGuard, adminGuard)
-	e.GET("/organization/users", authHandler(h.GetUsersInOrganization), authGuard)
-	e.POST("/organization/invite", authHandler(h.InviteUsersToOrganization), authGuard, adminGuard)
-	e.POST("/organization/users/virtual", authHandler(h.AddVirtualUserToOrganization), authGuard, adminGuard)
-	e.POST("/organization/users/:userId/virtual/:virtualUserId", authHandler(h.TransferVirtualUserToUser), authGuard, adminGuard)
-	e.DELETE("/organization/users/:userId", authHandler(h.RemoveUserFromOrganization), authGuard, adminGuard)
-	e.PUT("/organization/users/:userId", authHandler(h.UpdateUserRole), authGuard, adminGuard)
-	e.GET("/organization/top/:topX/measures/:leaderboardType", authHandler(h.GetLeaderboard), authGuard)
-	e.POST("/organization/matches", authHandler(h.PostMatch), authGuard)
+	// Clubs
+	e.POST("/club", authHandler(h.CreateClub), authGuard)
+	e.PUT("/club", authHandler(h.UpdateClub), authGuard)
+	e.DELETE("/club", authHandler(h.DeleteClub), authGuard)
+	e.GET("/club/users", authHandler(h.GetUsersInClub), authGuard)
+	e.POST("/club/invite", authHandler(h.InviteUsersToClub), authGuard)
+	e.POST("/club/users/virtual", authHandler(h.AddVirtualUserToClub), authGuard)
+	e.POST("/club/users/:userId/virtual/:virtualUserId", authHandler(h.TransferVirtualUserToUser), authGuard)
+	e.DELETE("/club/users/:userId", authHandler(h.RemoveUserFromClub), authGuard)
+	e.PUT("/club/users/:userId", authHandler(h.UpdateUserRole), authGuard)
+	e.GET("/club/top/:topX/measures/:leaderboardType", authHandler(h.GetLeaderboard), authGuard)
+	e.POST("/club/matches", authHandler(h.PostMatch), authGuard)
 }

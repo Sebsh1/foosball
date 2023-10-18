@@ -10,32 +10,33 @@ import (
 )
 
 func (h *Handlers) GetLeaderboard(c handlers.AuthenticatedContext) error {
-	type getLeaderboardRequest struct {
+	type request struct {
+		ClubID          uint                        `query:"ClubId" validate:"required,gt=0"`
 		TopX            int                         `query:"topX" validate:"required,gt=0,lte=50"`
 		LeaderboardType leaderboard.LeaderboardType `query:"type" validate:"required,oneof=wins streak rating"`
 	}
 
-	type getLeaderboardResponse struct {
+	type response struct {
 		Leaderboard leaderboard.Leaderboard `json:"leaderboard"`
 	}
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[getLeaderboardRequest](c)
+	req, err := helpers.Bind[request](c)
 	if err != nil {
 		return echo.ErrBadRequest
 	}
 
-	leaderboard, err := h.leaderboardService.GetLeaderboard(ctx, c.Claims.OrganizationID, req.TopX, req.LeaderboardType)
+	leaderboard, err := h.leaderboardService.GetLeaderboard(ctx, req.ClubID, req.TopX, req.LeaderboardType)
 	if err != nil {
 		h.logger.Error("failed to get leaderboard",
 			"error", err)
 		return echo.ErrInternalServerError
 	}
 
-	response := getLeaderboardResponse{
+	resp := response{
 		Leaderboard: *leaderboard,
 	}
 
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusOK, resp)
 }

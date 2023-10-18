@@ -38,7 +38,7 @@ var rootCmd = &cobra.Command{
 	Use:   "matchlog",
 	Short: "Matchlog is a service for tracking match results",
 	Long: "Matchlog is a service for tracking match results. " +
-		"It provides a REST API for creating and managing users, organizations, matches, and more.",
+		"It provides a REST API for creating and managing users, Clubs, matches, and more.",
 }
 
 func Execute() {

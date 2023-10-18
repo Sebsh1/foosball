@@ -1,8 +1,8 @@
 package migrations
 
 import (
+	"matchlog/internal/club"
 	"matchlog/internal/match"
-	"matchlog/internal/user"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
@@ -16,12 +16,10 @@ var Migration00001Init = &gormigrate.Migration{
 		type User struct {
 			ID uint `gorm:"primaryKey"`
 
-			Email string `gorm:"index"`
-			Name  string `gorm:"index;not null"`
-			Hash  string
-
-			OrganizationID *uint     `gorm:"index"`
-			Role           user.Role `default:"none"`
+			Email   string `gorm:"index"`
+			Name    string `gorm:"index;not null"`
+			Hash    string
+			Virtual bool `gorm:"default:false"`
 
 			CreatedAt time.Time
 		}
@@ -30,6 +28,7 @@ var Migration00001Init = &gormigrate.Migration{
 			ID uint `gorm:"primaryKey"`
 
 			UserID uint `gorm:"not null"`
+			GameID uint `gorm:"not null"`
 
 			Wins   int
 			Draws  int
@@ -42,8 +41,8 @@ var Migration00001Init = &gormigrate.Migration{
 		type Rating struct {
 			ID uint `gorm:"primaryKey"`
 
-			UserID         uint `gorm:"not null"`
-			OrganizationID uint `gorm:"not null"`
+			UserID uint `gorm:"not null"`
+			GameID uint `gorm:"not null"`
 
 			Value      float64 `gorm:"default:1000.0"`
 			Deviation  float64
@@ -52,10 +51,54 @@ var Migration00001Init = &gormigrate.Migration{
 			CreatedAt time.Time
 		}
 
-		type Organization struct {
+		type Game struct {
+			ID   uint   `gorm:"primaryKey"`
+			Name string `gorm:"not null"`
+		}
+
+		type Club struct {
 			ID uint `gorm:"primaryKey"`
 
 			Name string `gorm:"not null"`
+
+			CreatedAt time.Time
+		}
+
+		type ClubsUsers struct {
+			ID uint `gorm:"primaryKey"`
+
+			ClubID uint `gorm:"primaryKey"`
+			UserID uint `gorm:"primaryKey"`
+
+			Accepted bool      `gorm:"default:false"`
+			Role     club.Role `gorm:"default:member"`
+
+			CreatedAt time.Time
+		}
+
+		type ClubsGames struct {
+			ID uint `gorm:"primaryKey"`
+
+			ClubID uint `gorm:"primaryKey"`
+			GameID uint `gorm:"primaryKey"`
+
+			CreatedAt time.Time
+		}
+
+		type ClubsTournaments struct {
+			ID uint `gorm:"primaryKey"`
+
+			ClubID       uint `gorm:"primaryKey"`
+			TournamentID uint `gorm:"primaryKey"`
+
+			CreatedAt time.Time
+		}
+
+		type ClubsLeagues struct {
+			ID uint `gorm:"primaryKey"`
+
+			ClubID   uint `gorm:"primaryKey"`
+			LeagueID uint `gorm:"primaryKey"`
 
 			CreatedAt time.Time
 		}
@@ -71,22 +114,17 @@ var Migration00001Init = &gormigrate.Migration{
 			CreatedAt time.Time
 		}
 
-		type Invite struct {
-			ID uint `gorm:"primaryKey"`
-
-			OrganizationID uint `gorm:"not null"`
-			UserID         uint `gorm:"not null"`
-
-			CreatedAt time.Time
-		}
-
 		return tx.AutoMigrate(
 			&User{},
 			&Statistic{},
 			&Rating{},
-			&Organization{},
+			&Club{},
 			&Match{},
-			&Invite{},
+			&Game{},
+			&ClubsUsers{},
+			&ClubsGames{},
+			&ClubsTournaments{},
+			&ClubsLeagues{},
 		)
 	},
 }

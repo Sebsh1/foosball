@@ -1,10 +1,8 @@
-package organization
+package tournament
 
-import (
-	"time"
-)
+import "time"
 
-type Organization struct {
+type Tournament struct {
 	ID uint `gorm:"primaryKey"`
 
 	Name string `gorm:"not null"`

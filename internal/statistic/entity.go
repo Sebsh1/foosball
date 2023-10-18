@@ -21,6 +21,7 @@ type Statistic struct {
 	ID uint `gorm:"primaryKey"`
 
 	UserID uint `gorm:"not null"`
+	GameID uint `gorm:"not null"`
 
 	Wins   int
 	Draws  int

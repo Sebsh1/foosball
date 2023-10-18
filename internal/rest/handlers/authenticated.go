@@ -35,9 +35,7 @@ func AuthenticatedHandlerFactory(logger *zap.SugaredLogger) func(handler Authent
 
 			logger = logger.With(
 				"user_id", claims.UserID,
-				"org_id", claims.OrganizationID,
 				"name", claims.Name,
-				"role", claims.Role,
 			)
 
 			return handler(AuthenticatedContext{

@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"matchlog/internal/authentication"
-	"matchlog/internal/invite"
+	"matchlog/internal/club"
 	"matchlog/internal/leaderboard"
 	"matchlog/internal/match"
-	"matchlog/internal/organization"
 	"matchlog/internal/rating"
 	"matchlog/internal/rest/controllers"
 	"matchlog/internal/rest/helpers"
@@ -34,8 +33,7 @@ func NewServer(
 	logger *zap.SugaredLogger,
 	authService authentication.Service,
 	userService user.Service,
-	organizationService organization.Service,
-	inviteService invite.Service,
+	ClubService club.Service,
 	matchService match.Service,
 	ratingService rating.Service,
 	statisticService statistic.Service,
@@ -65,8 +63,7 @@ func NewServer(
 		logger.With("module", "rest"),
 		authService,
 		userService,
-		organizationService,
-		inviteService,
+		ClubService,
 		matchService,
 		ratingService,
 		statisticService,
@@ -80,9 +77,19 @@ func NewServer(
 }
 
 func (s *Server) Start() error {
-	return errors.Wrap(s.echo.Start(fmt.Sprintf("0.0.0.0:%d", s.port)), "Failed to start server")
+	err := s.echo.Start(fmt.Sprintf("0.0.0.0:%d", s.port))
+	if err != nil {
+		return errors.Wrap(err, "Failed to start server")
+	}
+
+	return nil
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	return errors.Wrap(s.echo.Shutdown(ctx), "Failed to shutdown server")
+	err := s.echo.Shutdown(ctx)
+	if err != nil {
+		return errors.Wrap(err, "Failed to shutdown server")
+	}
+
+	return nil
 }

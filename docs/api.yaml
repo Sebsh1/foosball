@@ -29,8 +29,8 @@ tags:
     description: "Endpoints relating to authorization"
   - name: User endpoints
     description: "Endpoints relating to users"
-  - name: Organization endpoints
-    description: "Endpoints relating to organizations"
+  - name: Club endpoints
+    description: "Endpoints relating to Clubs"
 
 components:
   securitySchemes:
@@ -153,7 +153,7 @@ paths:
                     id:
                       type: integer
                       example: 123
-                    organization_id:
+                    Club_id:
                       type: integer
                       example: 123
         "400":
@@ -199,16 +199,16 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/users:
+  /Club/users:
     get:
-      operationId: GetUsersInOrganization
+      operationId: GetUsersInClub
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for getting all users in an organization.
-        Only users in the organization can get the users.
+        Endpoint for getting all users in an Club.
+        Only users in the Club can get the users.
       responses:
         "200":
           description: "Users retrieved"
@@ -235,16 +235,16 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization:
+  /Club:
     put:
-      operationId: UpdateOrganization
+      operationId: UpdateClub
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for updating an organization.
-        Only admins of the organization can update the organization.
+        Endpoint for updating an Club.
+        Only admins of the Club can update the Club.
       requestBody:
         required: true
         content:
@@ -254,10 +254,10 @@ paths:
               properties:
                 name:
                   type: string
-                  example: "My Organization"
+                  example: "My Club"
       responses:
         "200":
-          description: "Organization updated"
+          description: "Club updated"
         "400":
           description: "Bad Request"
         "401":
@@ -265,17 +265,17 @@ paths:
         "500":
           description: "Internal Server Error"
     delete:
-      operationId: DeleteOrganization
+      operationId: DeleteClub
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for deleting an organization.
-        Only admins of the organization can delete the organization.
+        Endpoint for deleting an Club.
+        Only admins of the Club can delete the Club.
       responses:
         "200":
-          description: "Organization deleted"
+          description: "Club deleted"
         "400":
           description: "Bad Request"
         "401":
@@ -283,14 +283,14 @@ paths:
         "500":
           description: "Internal Server Error"
     post:
-      operationId: CreateOrganization
+      operationId: CreateClub
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for creating an organization. The user creating the organization will be set as an admin.
-        The session should be reauthenticated after creating an organization to get updated claims.
+        Endpoint for creating an Club. The user creating the Club will be set as an admin.
+        The session should be reauthenticated after creating an Club to get updated claims.
       requestBody:
         required: true
         content:
@@ -300,29 +300,29 @@ paths:
               properties:
                 name:
                   type: string
-                  example: "My Organization"
+                  example: "My Club"
       responses:
         "201":
-          description: "Organization created"
+          description: "Club created"
         "400":
           description: "Bad Request"
         "401":
           description: "Unauthorized"
         "403":
-          description: "Forbidden, user is already in an organization"
+          description: "Forbidden, user is already in an Club"
         "500":
           description: "Internal Server Error"
 
-  /organization/invites:
+  /Club/invites:
     post:
-      operationId: InviteUserToOrganization
+      operationId: InviteUserToClub
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for inviting a list of users to an organization.
-        Only admins of the organization can invite users.
+        Endpoint for inviting a list of users to an Club.
+        Only admins of the Club can invite users.
       requestBody:
         required: true
         content:
@@ -343,16 +343,16 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/users/{userId}:
+  /Club/users/{userId}:
     put:
       operationId: UpdateUserRole
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for updating a user's role in an organization.
-        Only admins of the organization can update roles.
+        Endpoint for updating a user's role in an Club.
+        Only admins of the Club can update roles.
       parameters:
         - in: path
           name: userId
@@ -379,14 +379,14 @@ paths:
         "500":
           description: "Internal Server Error"
     delete:
-      operationId: RemoveUserFromOrganization
+      operationId: RemoveUserFromClub
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for removing a user from an organization.
-        Only admins of the organization can remove users.
+        Endpoint for removing a user from an Club.
+        Only admins of the Club can remove users.
       parameters:
         - in: path
           name: userId
@@ -403,16 +403,16 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/users/virtual:
+  /Club/users/virtual:
     post:
-      operationId: AddVirtualUserToOrganization
+      operationId: AddVirtualUserToClub
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for adding virtual users to an organization.
-        Only admins of the organization add virtual users.
+        Endpoint for adding virtual users to an Club.
+        Only admins of the Club add virtual users.
       requestBody:
         required: true
         content:
@@ -433,18 +433,18 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/users/{userId}/virtual/{virtualUserId}:
+  /Club/users/{userId}/virtual/{virtualUserId}:
     post:
       operationId: TransferVirtualUserToUser
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
         Endpoint for transfering the rating & statistics of a virtual user to a real user.
         The real users old rating & statistics will be deleted.
         The virtual user will be deleted.
-        Only admins of the organization add virtual users.
+        Only admins of the Club add virtual users.
       parameters:
         - in: path
           name: userId
@@ -466,16 +466,16 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/matches:
+  /Club/matches:
     post:
       operationId: CreateMatch
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
         Endpoint for creating a match.
-        Only users in the organization can create matches.
+        Only users in the Club can create matches.
       requestBody:
         required: true
         content:
@@ -512,17 +512,17 @@ paths:
         "500":
           description: "Internal Server Error"
 
-  /organization/top/{topX}/measures/{leaderboardType}:
+  /Club/top/{topX}/measures/{leaderboardType}:
     get:
       operationId: GetTopX
       tags:
-        - Organization endpoints
+        - Club endpoints
       security:
         - JWT: []
       description: |
-        Endpoint for getting the top X players in an organization according to some measure.
+        Endpoint for getting the top X players in an Club according to some measure.
         Also called a leaderboard.
-        Only users in the organization can get the top X players.
+        Only users in the Club can get the top X players.
       parameters:
         - in: path
           name: topX

@@ -3,10 +3,9 @@ package cmd
 import (
 	"context"
 	"matchlog/internal/authentication"
-	"matchlog/internal/invite"
+	"matchlog/internal/club"
 	"matchlog/internal/leaderboard"
 	"matchlog/internal/match"
-	"matchlog/internal/organization"
 	"matchlog/internal/rating"
 	"matchlog/internal/rest"
 	"matchlog/internal/statistic"
@@ -52,13 +51,9 @@ func serve(cmd *cobra.Command, args []string) {
 	userRepository := user.NewRepository(db)
 	userService := user.NewService(userRepository)
 
-	// Initialize Organization service
-	organizationRepository := organization.NewRepository(db)
-	organizationService := organization.NewService(organizationRepository)
-
-	// Initialize Invite service
-	inviteRepository := invite.NewRepository(db)
-	inviteService := invite.NewService(inviteRepository, userService, organizationService)
+	// Initialize Club service
+	clubRepository := club.NewRepository(db)
+	clubService := club.NewService(clubRepository)
 
 	// Initialize Authentication service
 	authenticationService := authentication.NewService(config.Authentication.Secret, userService)
@@ -76,7 +71,7 @@ func serve(cmd *cobra.Command, args []string) {
 	statisticService := statistic.NewService(statisticRepository)
 
 	// Initialize Leaderboard service
-	leaderboardService := leaderboard.NewService(userService, ratingService, statisticService)
+	leaderboardService := leaderboard.NewService(clubService, userService, ratingService, statisticService)
 
 	// Initialize REST server
 	restServer, err := rest.NewServer(
@@ -84,8 +79,7 @@ func serve(cmd *cobra.Command, args []string) {
 		l,
 		authenticationService,
 		userService,
-		organizationService,
-		inviteService,
+		clubService,
 		matchService,
 		ratingService,
 		statisticService,

@@ -42,7 +42,7 @@ func (h *Handlers) Login(c echo.Context) error {
 }
 
 func (h *Handlers) Signup(c echo.Context) error {
-	type signupRequest struct {
+	type request struct {
 		Email    string `json:"email" validate:"required"`
 		Name     string `json:"name" validate:"required"`
 		Password string `json:"password" validate:"required"`
@@ -50,7 +50,7 @@ func (h *Handlers) Signup(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[signupRequest](c)
+	req, err := helpers.Bind[request](c)
 	if err != nil {
 		return echo.ErrBadRequest
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
-	type postMatchRequest struct {
+	type request struct {
 		TeamA   []uint `json:"teamA" validate:"required"`
 		TeamB   []uint `json:"teamB" validate:"required"`
 		ScoresA []int  `json:"scoresA" validate:"required"`
@@ -21,7 +21,7 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 
 	ctx := c.Request().Context()
 
-	req, err := helpers.Bind[postMatchRequest](c)
+	req, err := helpers.Bind[request](c)
 	if err != nil {
 		return echo.ErrBadRequest
 	}

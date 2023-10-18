@@ -10,11 +10,10 @@ type Service interface {
 	GetUser(ctx context.Context, id uint) (*User, error)
 	GetUsers(ctx context.Context, ids []uint) ([]*User, error)
 	GetUserByEmail(ctx context.Context, email string) (exists bool, user *User, err error)
-	GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error)
 	CreateUser(ctx context.Context, email, name, hash string) error
-	CreateVirtualUser(ctx context.Context, name string, organizationID uint) error
+	CreateVirtualUser(ctx context.Context, name string) error
 	DeleteUser(ctx context.Context, id uint) error
-	UpdateUser(ctx context.Context, id uint, email, name, hash string, organizationID *uint, role Role) error
+	UpdateUser(ctx context.Context, id uint, email, name, hash string, virtual bool) error
 }
 
 type ServiceImpl struct {
@@ -45,20 +44,12 @@ func (s *ServiceImpl) GetUsers(ctx context.Context, ids []uint) ([]*User, error)
 	return users, nil
 }
 
-func (s *ServiceImpl) GetUsersInOrganization(ctx context.Context, organizationID uint) ([]User, error) {
-	users, err := s.repo.GetUsersInOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get users in organization %d", organizationID)
-	}
-
-	return users, nil
-}
-
 func (s *ServiceImpl) CreateUser(ctx context.Context, email, name, hash string) error {
 	user := &User{
-		Email: email,
-		Name:  name,
-		Hash:  hash,
+		Email:   email,
+		Name:    name,
+		Hash:    hash,
+		Virtual: false,
 	}
 
 	if err := s.repo.CreateUser(ctx, user); err != nil {
@@ -68,11 +59,10 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email, name, hash string) 
 	return nil
 }
 
-func (s *ServiceImpl) CreateVirtualUser(ctx context.Context, name string, organizationID uint) error {
+func (s *ServiceImpl) CreateVirtualUser(ctx context.Context, name string) error {
 	user := &User{
-		Name:           name,
-		OrganizationID: &organizationID,
-		Role:           VirtualRole,
+		Name:    name,
+		Virtual: true,
 	}
 
 	if err := s.repo.CreateUser(ctx, user); err != nil {
@@ -103,14 +93,13 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *ServiceImpl) UpdateUser(ctx context.Context, id uint, email, name, hash string, organizationID *uint, role Role) error {
+func (s *ServiceImpl) UpdateUser(ctx context.Context, id uint, email, name, hash string, virtual bool) error {
 	user := &User{
-		ID:             id,
-		Email:          email,
-		Name:           name,
-		Hash:           hash,
-		OrganizationID: organizationID,
-		Role:           role,
+		ID:      id,
+		Email:   email,
+		Name:    name,
+		Hash:    hash,
+		Virtual: virtual,
 	}
 
 	if err := s.repo.UpdateUser(ctx, user); err != nil {
