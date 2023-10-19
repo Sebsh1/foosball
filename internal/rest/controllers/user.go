@@ -11,7 +11,7 @@ import (
 func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
 	ctx := c.Request().Context()
 
-	if err := h.userService.DeleteUser(ctx, c.Claims.UserID); err != nil {
+	if err := h.userService.DeleteUser(ctx, c.Claims.UserId); err != nil {
 		h.logger.Error("failed to delete user",
 			"error", err)
 		return echo.ErrInternalServerError
@@ -23,7 +23,7 @@ func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
 func (h *Handlers) RemoveUserFromClub(c handlers.AuthenticatedContext) error {
 	type request struct {
 		UserId uint `param:"userId" validate:"required,gt=0"`
-		ClubID uint `param:"ClubId" validate:"required,gt=0"`
+		ClubId uint `param:"ClubId" validate:"required,gt=0"`
 	}
 
 	ctx := c.Request().Context()
@@ -33,7 +33,7 @@ func (h *Handlers) RemoveUserFromClub(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if err := h.ClubService.RemoveUserFromClub(ctx, req.UserId, req.ClubID); err != nil {
+	if err := h.ClubService.RemoveUserFromClub(ctx, req.UserId, req.ClubId); err != nil {
 		h.logger.Error("failed to remove user from Club",
 			"error", err)
 		return echo.ErrInternalServerError
@@ -64,7 +64,7 @@ func (h *Handlers) AddVirtualUserToClub(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 	type request struct {
-		InviteID uint `param:"inviteId" validate:"required,gt=0"`
+		InviteId uint `param:"inviteId" validate:"required,gt=0"`
 		Accept   bool `json:"accept" validate:"required"`
 	}
 
@@ -75,7 +75,7 @@ func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if err := h.clubService.RespondToInvite(ctx, req.InviteID, req.Accept); err != nil {
+	if err := h.clubService.RespondToInvite(ctx, req.InviteId, req.Accept); err != nil {
 		h.logger.Error("failed to respond to invite",
 			"error", err)
 		return echo.ErrInternalServerError

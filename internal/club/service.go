@@ -9,13 +9,13 @@ import (
 type Service interface {
 	GetClub(ctx context.Context, id uint) (*Club, error)
 	GetClubs(ctx context.Context, ids []uint) ([]Club, error)
-	GetUserIDsInClub(ctx context.Context, id uint) ([]uint, error)
-	GetInvitesByUserID(ctx context.Context, userID uint) ([]ClubsUsers, error)
-	CreateClub(ctx context.Context, name string, adminUserID uint) (orgID uint, err error)
-	RemoveUserFromClub(ctx context.Context, userID uint, ClubID uint) error
+	GetUserIdsInClub(ctx context.Context, id uint) ([]uint, error)
+	GetInvitesByUserId(ctx context.Context, userId uint) ([]ClubsUsers, error)
+	CreateClub(ctx context.Context, name string, adminUserId uint) (clubId uint, err error)
+	RemoveUserFromClub(ctx context.Context, userId uint, ClubId uint) error
 	DeleteClub(ctx context.Context, id uint) error
 	UpdateClub(ctx context.Context, id uint, name string) error
-	UpdateUserRole(ctx context.Context, userID uint, ClubID uint, role Role) error
+	UpdateUserRole(ctx context.Context, userId uint, ClubId uint, role Role) error
 }
 
 type service struct {
@@ -29,34 +29,34 @@ func NewService(repo Repository) Service {
 }
 
 func (s *service) GetClub(ctx context.Context, id uint) (*Club, error) {
-	org, err := s.repo.GetClub(ctx, id)
+	club, err := s.repo.GetClub(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get Club")
 	}
 
-	return org, nil
+	return club, nil
 }
 
 func (s *service) GetClubs(ctx context.Context, ids []uint) ([]Club, error) {
-	orgs, err := s.repo.GetClubs(ctx, ids)
+	clubs, err := s.repo.GetClubs(ctx, ids)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get Clubs")
 	}
 
-	return orgs, nil
+	return clubs, nil
 }
 
-func (s *service) GetUserIDsInClub(ctx context.Context, id uint) ([]uint, error) {
-	userIDs, err := s.repo.GetUserIDsInClub(ctx, id)
+func (s *service) GetUserIdsInClub(ctx context.Context, id uint) ([]uint, error) {
+	userIds, err := s.repo.GetUserIdsInClub(ctx, id)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get userIDs in Club")
+		return nil, errors.Wrap(err, "failed to get userIds in Club")
 	}
 
-	return userIDs, nil
+	return userIds, nil
 }
 
-func (s *service) GetInvitesByUserID(ctx context.Context, userID uint) ([]ClubsUsers, error) {
-	invites, err := s.repo.GetInvitesByUserID(ctx, userID)
+func (s *service) GetInvitesByUserId(ctx context.Context, userId uint) ([]ClubsUsers, error) {
+	invites, err := s.repo.GetInvitesByUserId(ctx, userId)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get user invites")
 	}
@@ -64,25 +64,25 @@ func (s *service) GetInvitesByUserID(ctx context.Context, userID uint) ([]ClubsU
 	return invites, nil
 }
 
-func (s *service) CreateClub(ctx context.Context, name string, adminUserID uint) (uint, error) {
-	org := &Club{
+func (s *service) CreateClub(ctx context.Context, name string, adminUserId uint) (uint, error) {
+	club := &Club{
 		Name: name,
 	}
 
-	orgID, err := s.repo.CreateClub(ctx, org)
+	clubId, err := s.repo.CreateClub(ctx, club)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to create Club")
 	}
 
-	if err := s.repo.AddUserToClub(ctx, adminUserID, orgID, AdminRole); err != nil {
+	if err := s.repo.AddUserToClub(ctx, adminUserId, clubId, AdminRole); err != nil {
 		return 0, errors.Wrap(err, "failed to add creating user to Club")
 	}
 
-	return orgID, nil
+	return clubId, nil
 }
 
-func (s *service) RemoveUserFromClub(ctx context.Context, userID uint, ClubID uint) error {
-	if err := s.repo.RemoveUserFromClub(ctx, userID, ClubID); err != nil {
+func (s *service) RemoveUserFromClub(ctx context.Context, userId uint, ClubId uint) error {
+	if err := s.repo.RemoveUserFromClub(ctx, userId, ClubId); err != nil {
 		return errors.Wrap(err, "failed to remove user from Club")
 	}
 
@@ -105,8 +105,8 @@ func (s *service) UpdateClub(ctx context.Context, id uint, name string) error {
 	return nil
 }
 
-func (s *service) UpdateUserRole(ctx context.Context, userID uint, ClubID uint, role Role) error {
-	if err := s.repo.UpdateUserRole(ctx, userID, ClubID, role); err != nil {
+func (s *service) UpdateUserRole(ctx context.Context, userId uint, ClubId uint, role Role) error {
+	if err := s.repo.UpdateUserRole(ctx, userId, ClubId, role); err != nil {
 		return errors.Wrap(err, "failed to update user role")
 	}
 

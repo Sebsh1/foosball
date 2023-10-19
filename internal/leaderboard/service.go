@@ -11,7 +11,7 @@ import (
 )
 
 type Service interface {
-	GetLeaderboard(ctx context.Context, ClubID uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error)
+	GetLeaderboard(ctx context.Context, ClubId uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error)
 }
 
 type ServiceImpl struct {
@@ -30,45 +30,45 @@ func NewService(clubService club.Service, userService user.Service, ratingServic
 	}
 }
 
-func (s *ServiceImpl) GetLeaderboard(ctx context.Context, ClubID uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error) {
-	var userIDs []uint
+func (s *ServiceImpl) GetLeaderboard(ctx context.Context, ClubId uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error) {
+	var userIds []uint
 	var values []float64
 
-	userIDsInOrg, err := s.clubService.GetUserIDsInClub(ctx, ClubID)
+	userIdsInClub, err := s.clubService.GetUserIdsInClub(ctx, ClubId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get users in Club %d", ClubID)
+		return nil, errors.Wrapf(err, "failed to get users in Club %d", ClubId)
 	}
 
 	switch leaderboardType {
 	case TypeWins:
-		ids, wins, err := s.statisticService.GetTopXAmongUserIDsByMeasure(ctx, topX, userIDsInOrg, statistic.MeasureWins)
+		ids, wins, err := s.statisticService.GetTopXAmongUserIdsByMeasure(ctx, topX, userIdsInClub, statistic.MeasureWins)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get top %d userIDs by wins", topX)
+			return nil, errors.Wrapf(err, "failed to get top %d userIds by wins", topX)
 		}
 
-		userIDs = ids
+		userIds = ids
 		values = s.convertIntToFloat64(wins)
 	case TypeStreak:
-		ids, winstreaks, err := s.statisticService.GetTopXAmongUserIDsByMeasure(ctx, topX, userIDsInOrg, statistic.MeasureStreak)
+		ids, winstreaks, err := s.statisticService.GetTopXAmongUserIdsByMeasure(ctx, topX, userIdsInClub, statistic.MeasureStreak)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get top %d userIDs by streak", topX)
+			return nil, errors.Wrapf(err, "failed to get top %d userIds by streak", topX)
 		}
 
-		userIDs = ids
+		userIds = ids
 		values = s.convertIntToFloat64(winstreaks)
 	case TypeRating:
-		ids, ratings, err := s.ratingService.GetTopXAmongUserIDsByRating(ctx, topX, userIDsInOrg)
+		ids, ratings, err := s.ratingService.GetTopXAmongUserIdsByRating(ctx, topX, userIdsInClub)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get top %d userIDs by rating", topX)
+			return nil, errors.Wrapf(err, "failed to get top %d userIds by rating", topX)
 		}
 
-		userIDs = ids
+		userIds = ids
 		values = s.convertIntToFloat64(ratings)
 	default:
 		return nil, errors.Errorf("unknown leaderboard type: %s", leaderboardType)
 	}
 
-	users, err := s.userService.GetUsers(ctx, userIDs)
+	users, err := s.userService.GetUsers(ctx, userIds)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get users")
 	}
@@ -77,7 +77,7 @@ func (s *ServiceImpl) GetLeaderboard(ctx context.Context, ClubID uint, topX int,
 	for i, u := range users {
 		entries[i] = Entry{
 			Value:  values[i],
-			UserID: u.ID,
+			UserId: u.Id,
 			Name:   u.Name,
 		}
 	}

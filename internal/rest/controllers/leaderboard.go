@@ -11,7 +11,7 @@ import (
 
 func (h *Handlers) GetLeaderboard(c handlers.AuthenticatedContext) error {
 	type request struct {
-		ClubID          uint                        `query:"ClubId" validate:"required,gt=0"`
+		ClubId          uint                        `query:"ClubId" validate:"required,gt=0"`
 		TopX            int                         `query:"topX" validate:"required,gt=0,lte=50"`
 		LeaderboardType leaderboard.LeaderboardType `query:"type" validate:"required,oneof=wins streak rating"`
 	}
@@ -27,7 +27,7 @@ func (h *Handlers) GetLeaderboard(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	leaderboard, err := h.leaderboardService.GetLeaderboard(ctx, req.ClubID, req.TopX, req.LeaderboardType)
+	leaderboard, err := h.leaderboardService.GetLeaderboard(ctx, req.ClubId, req.TopX, req.LeaderboardType)
 	if err != nil {
 		h.logger.Error("failed to get leaderboard",
 			"error", err)

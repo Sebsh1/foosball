@@ -47,7 +47,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 		return false, "", nil
 	}
 
-	token, err := s.generateJWT(user.Name, user.ID)
+	token, err := s.generateJWT(user.Name, user.Id)
 	if err != nil {
 		return false, "", errors.Wrap(err, "failed to generate jwt")
 	}
@@ -101,7 +101,7 @@ func (s *ServiceImpl) VerifyJWT(ctx context.Context, token string) (bool, *Claim
 	return true, claims, nil
 }
 
-func (s *ServiceImpl) generateJWT(name string, userID uint) (string, error) {
+func (s *ServiceImpl) generateJWT(name string, userId uint) (string, error) {
 	now := time.Now()
 
 	standardClaims := jwt.StandardClaims{
@@ -114,7 +114,7 @@ func (s *ServiceImpl) generateJWT(name string, userID uint) (string, error) {
 	claims := Claims{
 		StandardClaims: standardClaims,
 		Name:           name,
-		UserID:         userID,
+		UserId:         userId,
 	}
 
 	tokenUnsigned := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

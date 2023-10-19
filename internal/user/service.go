@@ -86,7 +86,7 @@ func (s *ServiceImpl) GetUserByEmail(ctx context.Context, email string) (bool, *
 }
 
 func (s *ServiceImpl) DeleteUser(ctx context.Context, id uint) error {
-	if err := s.repo.DeleteUserByID(ctx, id); err != nil {
+	if err := s.repo.DeleteUserById(ctx, id); err != nil {
 		return errors.Wrap(err, "failed to delete user by id")
 	}
 
@@ -95,7 +95,7 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, id uint) error {
 
 func (s *ServiceImpl) UpdateUser(ctx context.Context, id uint, email, name, hash string, virtual bool) error {
 	user := &User{
-		ID:      id,
+		Id:      id,
 		Email:   email,
 		Name:    name,
 		Hash:    hash,

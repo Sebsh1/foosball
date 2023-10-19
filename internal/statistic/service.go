@@ -7,11 +7,11 @@ import (
 )
 
 type Service interface {
-	GetStatisticByUserID(ctx context.Context, userID uint) (*Statistic, error)
-	GetTopXAmongUserIDsByMeasure(ctx context.Context, topX int, userIDs []uint, measure Measure) (topXUserIDs []uint, values []int, err error)
-	CreateStatistic(ctx context.Context, userID uint) error
-	UpdateStatisticsByUserIDs(ctx context.Context, userIDs []uint, result MatchResult) error
-	TransferStatistics(ctx context.Context, fromUserID, toUserID uint) error
+	GetStatisticByUserId(ctx context.Context, userId uint) (*Statistic, error)
+	GetTopXAmongUserIdsByMeasure(ctx context.Context, topX int, userIds []uint, measure Measure) (topXUserIds []uint, values []int, err error)
+	CreateStatistic(ctx context.Context, userId uint) error
+	UpdateStatisticsByUserIds(ctx context.Context, userIds []uint, result MatchResult) error
+	TransferStatistics(ctx context.Context, fromUserId, toUserId uint) error
 }
 
 type ServiceImpl struct {
@@ -24,59 +24,59 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *ServiceImpl) GetStatisticByUserID(ctx context.Context, userID uint) (*Statistic, error) {
-	stats, err := s.repo.GetStatisticByUserID(ctx, userID)
+func (s *ServiceImpl) GetStatisticByUserId(ctx context.Context, userId uint) (*Statistic, error) {
+	stats, err := s.repo.GetStatisticByUserId(ctx, userId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get statistics for user %d", userID)
+		return nil, errors.Wrapf(err, "failed to get statistics for user %d", userId)
 	}
 
 	return stats, nil
 }
 
-func (s *ServiceImpl) GetTopXAmongUserIDsByMeasure(ctx context.Context, topX int, userIDs []uint, measure Measure) ([]uint, []int, error) {
-	var topXUserIDs []uint
+func (s *ServiceImpl) GetTopXAmongUserIdsByMeasure(ctx context.Context, topX int, userIds []uint, measure Measure) ([]uint, []int, error) {
+	var topXUserIds []uint
 	var values []int
 
 	switch measure {
 	case MeasureWins:
-		ids, wins, err := s.repo.GetTopXAmongUserIDsByWins(ctx, topX, userIDs)
+		ids, wins, err := s.repo.GetTopXAmongUserIdsByWins(ctx, topX, userIds)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "failed to get top %d users by wins", topX)
 		}
 
-		topXUserIDs = ids
+		topXUserIds = ids
 		values = wins
 	case MeasureStreak:
-		ids, streaks, err := s.repo.GetTopXAmongUserIDsByStreak(ctx, topX, userIDs)
+		ids, streaks, err := s.repo.GetTopXAmongUserIdsByStreak(ctx, topX, userIds)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "failed to get top %d users by win streaks", topX)
 		}
 
-		topXUserIDs = ids
+		topXUserIds = ids
 		values = streaks
 	default:
 		return nil, nil, errors.Errorf("unsupported measure: %s", measure)
 	}
 
-	return topXUserIDs, values, nil
+	return topXUserIds, values, nil
 }
 
-func (s *ServiceImpl) CreateStatistic(ctx context.Context, userID uint) error {
-	if err := s.repo.CreateStatistic(ctx, userID); err != nil {
-		return errors.Wrapf(err, "failed to create statistics for user %d", userID)
+func (s *ServiceImpl) CreateStatistic(ctx context.Context, userId uint) error {
+	if err := s.repo.CreateStatistic(ctx, userId); err != nil {
+		return errors.Wrapf(err, "failed to create statistics for user %d", userId)
 	}
 
 	return nil
 }
 
-func (s *ServiceImpl) UpdateStatisticsByUserIDs(ctx context.Context, userIDs []uint, result MatchResult) error {
-	oldStatistics, err := s.repo.GetStatisticsByUserIDs(ctx, userIDs)
+func (s *ServiceImpl) UpdateStatisticsByUserIds(ctx context.Context, userIds []uint, result MatchResult) error {
+	oldStatistics, err := s.repo.GetStatisticsByUserIds(ctx, userIds)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get statistics for users %v", userIDs)
+		return errors.Wrapf(err, "failed to get statistics for users %v", userIds)
 	}
 
-	updatedStatistics := make([]Statistic, len(userIDs))
-	for i := range userIDs {
+	updatedStatistics := make([]Statistic, len(userIds))
+	for i := range userIds {
 		stats := oldStatistics[i]
 
 		switch result {
@@ -109,19 +109,19 @@ func (s *ServiceImpl) UpdateStatisticsByUserIDs(ctx context.Context, userIDs []u
 	return nil
 }
 
-func (s *ServiceImpl) TransferStatistics(ctx context.Context, fromUserID, toUserID uint) error {
-	fromStats, err := s.repo.GetStatisticByUserID(ctx, fromUserID)
+func (s *ServiceImpl) TransferStatistics(ctx context.Context, fromUserId, toUserId uint) error {
+	fromStats, err := s.repo.GetStatisticByUserId(ctx, fromUserId)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get statistics for user %d", fromUserID)
+		return errors.Wrapf(err, "failed to get statistics for user %d", fromUserId)
 	}
 
-	toStats, err := s.repo.GetStatisticByUserID(ctx, toUserID)
+	toStats, err := s.repo.GetStatisticByUserId(ctx, toUserId)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get statistics for user %d", toUserID)
+		return errors.Wrapf(err, "failed to get statistics for user %d", toUserId)
 	}
 
-	fromStats.UserID = toUserID
-	toStats.UserID = fromUserID
+	fromStats.UserId = toUserId
+	toStats.UserId = fromUserId
 
 	if err := s.repo.UpdateStatistics(ctx, []Statistic{*fromStats, *toStats}); err != nil {
 		return errors.Wrap(err, "failed to update statistics")

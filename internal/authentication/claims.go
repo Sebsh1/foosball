@@ -8,5 +8,5 @@ type Claims struct {
 	jwt.StandardClaims
 
 	Name   string `json:"name"`
-	UserID uint   `json:"user_id"`
+	UserId uint   `json:"user_id"`
 }

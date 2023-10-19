@@ -3,7 +3,7 @@ package league
 import "time"
 
 type League struct {
-	ID uint `gorm:"primaryKey"`
+	Id uint `gorm:"primaryKey"`
 
 	Name string `gorm:"not null"`
 
@@ -11,10 +11,10 @@ type League struct {
 }
 
 type LeaguesMatches struct {
-	ID uint `gorm:"primaryKey"`
+	Id uint `gorm:"primaryKey"`
 
-	LeagueID uint `gorm:"primaryKey"`
-	MatchID  uint `gorm:"primaryKey"`
+	LeagueId uint `gorm:"primaryKey"`
+	MatchId  uint `gorm:"primaryKey"`
 
 	CreatedAt time.Time
 }

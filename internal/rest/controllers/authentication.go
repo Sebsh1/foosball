@@ -77,7 +77,7 @@ func (h *Handlers) Signup(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	if err = h.statisticService.CreateStatistic(ctx, u.ID); err != nil {
+	if err = h.statisticService.CreateStatistic(ctx, u.Id); err != nil {
 		h.logger.Error("failed to create statistic",
 			"error", err)
 		return echo.ErrInternalServerError

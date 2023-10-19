@@ -10,7 +10,7 @@ const (
 
 type Entry struct {
 	Value  float64 `json:"value"`
-	UserID uint    `json:"user_id"`
+	UserId uint    `json:"user_id"`
 	Name   string  `json:"name"`
 }
 

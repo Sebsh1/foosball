@@ -40,19 +40,19 @@ func (h *Handlers) PostMatch(c handlers.AuthenticatedContext) error {
 
 	if result == match.Draw {
 		allPlayers := append(req.TeamA, req.TeamB...)
-		if err := h.statisticService.UpdateStatisticsByUserIDs(ctx, allPlayers, statistic.ResultDraw); err != nil {
+		if err := h.statisticService.UpdateStatisticsByUserIds(ctx, allPlayers, statistic.ResultDraw); err != nil {
 			h.logger.Error("failed to update statistics for draw",
 				"error", err)
 			return echo.ErrInternalServerError
 		}
 	} else {
-		if err := h.statisticService.UpdateStatisticsByUserIDs(ctx, winners, statistic.ResultWin); err != nil {
+		if err := h.statisticService.UpdateStatisticsByUserIds(ctx, winners, statistic.ResultWin); err != nil {
 			h.logger.Error("failed to update statistics for winners",
 				"error", err)
 			return echo.ErrInternalServerError
 		}
 
-		if err := h.statisticService.UpdateStatisticsByUserIDs(ctx, losers, statistic.ResultLoss); err != nil {
+		if err := h.statisticService.UpdateStatisticsByUserIds(ctx, losers, statistic.ResultLoss); err != nil {
 			h.logger.Error("failed to update statistics for losers",
 				"error", err)
 			return echo.ErrInternalServerError

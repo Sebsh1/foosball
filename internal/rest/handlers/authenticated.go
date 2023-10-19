@@ -34,7 +34,7 @@ func AuthenticatedHandlerFactory(logger *zap.SugaredLogger) func(handler Authent
 			}
 
 			logger = logger.With(
-				"user_id", claims.UserID,
+				"user_id", claims.UserId,
 				"name", claims.Name,
 			)
 

@@ -18,14 +18,14 @@ var (
 type Repository interface {
 	GetClub(ctx context.Context, id uint) (*Club, error)
 	GetClubs(ctx context.Context, ids []uint) ([]Club, error)
-	GetUserIDsInClub(ctx context.Context, id uint) ([]uint, error)
-	GetInvitesByUserID(ctx context.Context, userID uint) ([]ClubsUsers, error)
-	CreateClub(ctx context.Context, Club *Club) (orgID uint, err error)
-	AddUserToClub(ctx context.Context, userID uint, ClubID uint, role Role) error
-	RemoveUserFromClub(ctx context.Context, userID uint, ClubID uint) error
+	GetUserIdsInClub(ctx context.Context, id uint) ([]uint, error)
+	GetInvitesByUserId(ctx context.Context, userId uint) ([]ClubsUsers, error)
+	CreateClub(ctx context.Context, Club *Club) (clubId uint, err error)
+	AddUserToClub(ctx context.Context, userId uint, ClubId uint, role Role) error
+	RemoveUserFromClub(ctx context.Context, userId uint, ClubId uint) error
 	DeleteClub(ctx context.Context, id uint) error
 	UpdateClub(ctx context.Context, id uint, name string) error
-	UpdateUserRole(ctx context.Context, userID uint, ClubID uint, role Role) error
+	UpdateUserRole(ctx context.Context, userId uint, ClubId uint, role Role) error
 }
 
 type repository struct {
@@ -39,9 +39,9 @@ func NewRepository(db *gorm.DB) Repository {
 }
 
 func (r *repository) GetClub(ctx context.Context, id uint) (*Club, error) {
-	var org Club
+	var club Club
 	result := r.db.WithContext(ctx).
-		First(&org, id)
+		First(&club, id)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrNotFound
@@ -50,47 +50,47 @@ func (r *repository) GetClub(ctx context.Context, id uint) (*Club, error) {
 		return nil, result.Error
 	}
 
-	return &org, nil
+	return &club, nil
 }
 
 func (r *repository) GetClubs(ctx context.Context, ids []uint) ([]Club, error) {
-	var orgs []Club
+	var clubs []Club
 	result := r.db.WithContext(ctx).
-		Find(&orgs, ids)
+		Find(&clubs, ids)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	return orgs, nil
+	return clubs, nil
 }
 
-func (r *repository) GetUserIDsInClub(ctx context.Context, id uint) ([]uint, error) {
-	var orgUsers []ClubsUsers
+func (r *repository) GetUserIdsInClub(ctx context.Context, id uint) ([]uint, error) {
+	var clubUsers []ClubsUsers
 	result := r.db.WithContext(ctx).
 		Where("Club_id = ?", id).
-		Find(&orgUsers)
+		Find(&clubUsers)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	var userIDs []uint
-	for _, orgUser := range orgUsers {
-		userIDs = append(userIDs, orgUser.UserId)
+	var userIds []uint
+	for _, clubUser := range clubUsers {
+		userIds = append(userIds, clubUser.UserId)
 	}
 
-	return userIDs, nil
+	return userIds, nil
 }
 
-func (r *repository) GetInvitesByUserID(ctx context.Context, userID uint) ([]ClubsUsers, error) {
-	var orgUsers []ClubsUsers
+func (r *repository) GetInvitesByUserId(ctx context.Context, userId uint) ([]ClubsUsers, error) {
+	var clubUsers []ClubsUsers
 	result := r.db.WithContext(ctx).
-		Where("user_id = ? AND accepted = ?", userID, false).
-		Find(&orgUsers)
+		Where("user_id = ? AND accepted = ?", userId, false).
+		Find(&clubUsers)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	return orgUsers, nil
+	return clubUsers, nil
 }
 
 func (r *repository) CreateClub(ctx context.Context, Club *Club) (uint, error) {
@@ -108,16 +108,16 @@ func (r *repository) CreateClub(ctx context.Context, Club *Club) (uint, error) {
 	return Club.Id, nil
 }
 
-func (r *repository) AddUserToClub(ctx context.Context, userID uint, ClubID uint, role Role) error {
-	orgUser := &ClubsUsers{
-		ClubId:   ClubID,
-		UserId:   userID,
+func (r *repository) AddUserToClub(ctx context.Context, userId uint, ClubId uint, role Role) error {
+	clubUser := &ClubsUsers{
+		ClubId:   ClubId,
+		UserId:   userId,
 		Accepted: true,
 		Role:     role,
 	}
 
 	result := r.db.WithContext(ctx).
-		Create(&orgUser)
+		Create(&clubUser)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -125,9 +125,9 @@ func (r *repository) AddUserToClub(ctx context.Context, userID uint, ClubID uint
 	return nil
 }
 
-func (r *repository) RemoveUserFromClub(ctx context.Context, userID uint, ClubID uint) error {
+func (r *repository) RemoveUserFromClub(ctx context.Context, userId uint, ClubId uint) error {
 	result := r.db.WithContext(ctx).
-		Where("user_id = ? AND Club_id = ?", userID, ClubID).
+		Where("user_id = ? AND Club_id = ?", userId, ClubId).
 		Delete(&ClubsUsers{})
 	if result.Error != nil {
 		return result.Error
@@ -158,10 +158,10 @@ func (r *repository) UpdateClub(ctx context.Context, id uint, name string) error
 	return nil
 }
 
-func (r *repository) UpdateUserRole(ctx context.Context, userID uint, ClubID uint, role Role) error {
+func (r *repository) UpdateUserRole(ctx context.Context, userId uint, ClubId uint, role Role) error {
 	result := r.db.WithContext(ctx).
 		Model(&ClubsUsers{}).
-		Where("user_id = ? AND Club_id = ?", userID, ClubID).
+		Where("user_id = ? AND Club_id = ?", userId, ClubId).
 		Update("role", role)
 	if result.Error != nil {
 		return result.Error

@@ -14,7 +14,7 @@ var Migration00001Init = &gormigrate.Migration{
 	ID: "init_00001",
 	Migrate: func(tx *gorm.DB) error {
 		type User struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
 			Email   string `gorm:"index"`
 			Name    string `gorm:"index;not null"`
@@ -25,10 +25,10 @@ var Migration00001Init = &gormigrate.Migration{
 		}
 
 		type Statistic struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
-			UserID uint `gorm:"not null"`
-			GameID uint `gorm:"not null"`
+			UserId uint `gorm:"not null"`
+			GameId uint `gorm:"not null"`
 
 			Wins   int
 			Draws  int
@@ -39,10 +39,10 @@ var Migration00001Init = &gormigrate.Migration{
 		}
 
 		type Rating struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
-			UserID uint `gorm:"not null"`
-			GameID uint `gorm:"not null"`
+			UserId uint `gorm:"not null"`
+			GameId uint `gorm:"not null"`
 
 			Value      float64 `gorm:"default:1000.0"`
 			Deviation  float64
@@ -52,12 +52,12 @@ var Migration00001Init = &gormigrate.Migration{
 		}
 
 		type Game struct {
-			ID   uint   `gorm:"primaryKey"`
+			Id   uint   `gorm:"primaryKey"`
 			Name string `gorm:"not null"`
 		}
 
 		type Club struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
 			Name string `gorm:"not null"`
 
@@ -65,10 +65,10 @@ var Migration00001Init = &gormigrate.Migration{
 		}
 
 		type ClubsUsers struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
-			ClubID uint `gorm:"primaryKey"`
-			UserID uint `gorm:"primaryKey"`
+			ClubId uint `gorm:"primaryKey"`
+			UserId uint `gorm:"primaryKey"`
 
 			Accepted bool      `gorm:"default:false"`
 			Role     club.Role `gorm:"default:member"`
@@ -77,34 +77,34 @@ var Migration00001Init = &gormigrate.Migration{
 		}
 
 		type ClubsGames struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
-			ClubID uint `gorm:"primaryKey"`
-			GameID uint `gorm:"primaryKey"`
+			ClubId uint `gorm:"primaryKey"`
+			GameId uint `gorm:"primaryKey"`
 
 			CreatedAt time.Time
 		}
 
 		type ClubsTournaments struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
-			ClubID       uint `gorm:"primaryKey"`
-			TournamentID uint `gorm:"primaryKey"`
+			ClubId       uint `gorm:"primaryKey"`
+			TournamentId uint `gorm:"primaryKey"`
 
 			CreatedAt time.Time
 		}
 
 		type ClubsLeagues struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
-			ClubID   uint `gorm:"primaryKey"`
-			LeagueID uint `gorm:"primaryKey"`
+			ClubId   uint `gorm:"primaryKey"`
+			LeagueId uint `gorm:"primaryKey"`
 
 			CreatedAt time.Time
 		}
 
 		type Match struct {
-			ID uint `gorm:"primaryKey"`
+			Id uint `gorm:"primaryKey"`
 
 			TeamA  []uint       `gorm:"serializer:json;not null"`
 			TeamB  []uint       `gorm:"serializer:json;not null"`
