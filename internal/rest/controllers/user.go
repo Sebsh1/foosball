@@ -33,7 +33,7 @@ func (h *Handlers) RemoveUserFromClub(c handlers.AuthenticatedContext) error {
 		return echo.ErrBadRequest
 	}
 
-	if err := h.ClubService.RemoveUserFromClub(ctx, req.UserId, req.ClubId); err != nil {
+	if err := h.clubService.RemoveUserFromClub(ctx, req.UserId, req.ClubId); err != nil {
 		h.logger.Error("failed to remove user from Club",
 			"error", err)
 		return echo.ErrInternalServerError
