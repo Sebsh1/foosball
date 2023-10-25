@@ -11,7 +11,7 @@ import (
 )
 
 type Service interface {
-	GetLeaderboard(ctx context.Context, ClubId uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error)
+	GetLeaderboard(ctx context.Context, clubId uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error)
 }
 
 type ServiceImpl struct {
@@ -30,13 +30,13 @@ func NewService(clubService club.Service, userService user.Service, ratingServic
 	}
 }
 
-func (s *ServiceImpl) GetLeaderboard(ctx context.Context, ClubId uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error) {
+func (s *ServiceImpl) GetLeaderboard(ctx context.Context, clubId uint, topX int, leaderboardType LeaderboardType) (*Leaderboard, error) {
 	var userIds []uint
 	var values []float64
 
-	userIdsInClub, err := s.clubService.GetUserIdsInClub(ctx, ClubId)
+	userIdsInClub, err := s.clubService.GetUserIdsInClub(ctx, clubId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get users in Club %d", ClubId)
+		return nil, errors.Wrapf(err, "failed to get users in Club %d", clubId)
 	}
 
 	switch leaderboardType {

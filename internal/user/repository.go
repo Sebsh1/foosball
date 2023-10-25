@@ -18,8 +18,9 @@ var (
 type Repository interface {
 	GetUser(ctx context.Context, id uint) (*User, error)
 	GetUsers(ctx context.Context, ids []uint) ([]*User, error)
-	GetUsersInClub(ctx context.Context, ClubId uint) ([]User, error)
+	GetUsersInClub(ctx context.Context, clubId uint) ([]User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	GetUsersByEmails(ctx context.Context, emails []string) ([]*User, error)
 	CreateUser(ctx context.Context, user *User) error
 	DeleteUserById(ctx context.Context, id uint) error
 	UpdateUser(ctx context.Context, user *User) error
@@ -59,10 +60,10 @@ func (r *RepositoryImpl) GetUsers(ctx context.Context, ids []uint) ([]*User, err
 	return users, nil
 }
 
-func (r *RepositoryImpl) GetUsersInClub(ctx context.Context, ClubId uint) ([]User, error) {
+func (r *RepositoryImpl) GetUsersInClub(ctx context.Context, clubId uint) ([]User, error) {
 	var users []User
 	result := r.db.WithContext(ctx).
-		Where("Club_id = ?", ClubId).
+		Where("club_id = ?", clubId).
 		Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
@@ -100,6 +101,18 @@ func (r *RepositoryImpl) GetUserByEmail(ctx context.Context, email string) (*Use
 	}
 
 	return &user, nil
+}
+
+func (r *RepositoryImpl) GetUsersByEmails(ctx context.Context, emails []string) ([]*User, error) {
+	var users []*User
+	result := r.db.WithContext(ctx).
+		Where("email IN ?", emails).
+		Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return users, nil
 }
 
 func (r *RepositoryImpl) DeleteUserById(ctx context.Context, id uint) error {

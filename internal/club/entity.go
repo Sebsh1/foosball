@@ -49,12 +49,3 @@ type ClubsTournaments struct {
 
 	CreatedAt time.Time
 }
-
-type ClubsLeagues struct {
-	Id uint `gorm:"primaryKey"`
-
-	ClubId   uint `gorm:"primaryKey"`
-	LeagueId uint `gorm:"primaryKey"`
-
-	CreatedAt time.Time
-}

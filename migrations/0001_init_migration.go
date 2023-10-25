@@ -94,15 +94,6 @@ var Migration00001Init = &gormigrate.Migration{
 			CreatedAt time.Time
 		}
 
-		type ClubsLeagues struct {
-			Id uint `gorm:"primaryKey"`
-
-			ClubId   uint `gorm:"primaryKey"`
-			LeagueId uint `gorm:"primaryKey"`
-
-			CreatedAt time.Time
-		}
-
 		type Match struct {
 			Id uint `gorm:"primaryKey"`
 
@@ -124,7 +115,6 @@ var Migration00001Init = &gormigrate.Migration{
 			&ClubsUsers{},
 			&ClubsGames{},
 			&ClubsTournaments{},
-			&ClubsLeagues{},
 		)
 	},
 }

@@ -11,7 +11,7 @@ import (
 
 func (h *Handlers) GetLeaderboard(c handlers.AuthenticatedContext) error {
 	type request struct {
-		ClubId          uint                        `query:"ClubId" validate:"required,gt=0"`
+		ClubId          uint                        `query:"clubId" validate:"required,gt=0"`
 		TopX            int                         `query:"topX" validate:"required,gt=0,lte=50"`
 		LeaderboardType leaderboard.LeaderboardType `query:"type" validate:"required,oneof=wins streak rating"`
 	}

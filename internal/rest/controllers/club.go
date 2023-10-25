@@ -33,7 +33,7 @@ func (h *Handlers) CreateClub(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) DeleteClub(c handlers.AuthenticatedContext) error {
 	type request struct {
-		ClubId uint `json:"ClubId" validate:"required,gt=0"`
+		ClubId uint `json:"clubId" validate:"required,gt=0"`
 	}
 
 	req, err := helpers.Bind[request](c)
@@ -54,7 +54,7 @@ func (h *Handlers) DeleteClub(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) UpdateClub(c handlers.AuthenticatedContext) error {
 	type request struct {
-		ClubId uint   `json:"ClubId" validate:"required,gt=0"`
+		ClubId uint   `json:"clubId" validate:"required,gt=0"`
 		Name   string `json:"name" validate:"required"`
 	}
 
@@ -76,7 +76,7 @@ func (h *Handlers) UpdateClub(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 	type request struct {
-		ClubId uint      `param:"ClubId" validate:"required,gt=0"`
+		ClubId uint      `param:"clubId" validate:"required,gt=0"`
 		UserId uint      `param:"userId" validate:"required,gt=0"`
 		Role   club.Role `json:"role" validate:"required"`
 	}
@@ -99,7 +99,7 @@ func (h *Handlers) UpdateUserRole(c handlers.AuthenticatedContext) error {
 
 func (h *Handlers) GetUsersInClub(c handlers.AuthenticatedContext) error {
 	type request struct {
-		ClubId uint `query:"ClubId" validate:"required,gt=0"`
+		ClubId uint `query:"clubId" validate:"required,gt=0"`
 	}
 
 	type responseUser struct {
@@ -196,4 +196,38 @@ func (h *Handlers) GetUserInvites(c handlers.AuthenticatedContext) error {
 	}
 
 	return c.JSON(http.StatusOK, resp)
+}
+
+func (h *Handlers) InviteUsersToClub(c handlers.AuthenticatedContext) error {
+	type request struct {
+		ClubId uint     `json:"club_id"`
+		Emails []string `json:"emails"`
+	}
+
+	ctx := c.Request().Context()
+
+	req, err := helpers.Bind[request](c)
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	users, err := h.userService.GetUsersByEmails(ctx, req.Emails)
+	if err != nil {
+		h.logger.Error("failed to get users by email",
+			"error", err)
+		return echo.ErrInternalServerError
+	}
+
+	userIds := make([]uint, len(users))
+	for i, u := range users {
+		userIds[i] = u.Id
+	}
+
+	if err := h.clubService.InviteToClub(ctx, userIds, req.ClubId); err != nil {
+		h.logger.Error("failed to invite users to club",
+			"error", err)
+		return echo.ErrInternalServerError
+	}
+
+	return c.NoContent(http.StatusOK)
 }

@@ -11,11 +11,12 @@ type Service interface {
 	GetClubs(ctx context.Context, ids []uint) ([]Club, error)
 	GetUserIdsInClub(ctx context.Context, id uint) ([]uint, error)
 	GetInvitesByUserId(ctx context.Context, userId uint) ([]ClubsUsers, error)
+	InviteToClub(ctx context.Context, userIds []uint, clubId uint) error
 	CreateClub(ctx context.Context, name string, adminUserId uint) (clubId uint, err error)
-	RemoveUserFromClub(ctx context.Context, userId uint, ClubId uint) error
+	RemoveUserFromClub(ctx context.Context, userId uint, clubId uint) error
 	DeleteClub(ctx context.Context, id uint) error
 	UpdateClub(ctx context.Context, id uint, name string) error
-	UpdateUserRole(ctx context.Context, userId uint, ClubId uint, role Role) error
+	UpdateUserRole(ctx context.Context, userId uint, clubId uint, role Role) error
 }
 
 type service struct {
@@ -81,8 +82,8 @@ func (s *service) CreateClub(ctx context.Context, name string, adminUserId uint)
 	return clubId, nil
 }
 
-func (s *service) RemoveUserFromClub(ctx context.Context, userId uint, ClubId uint) error {
-	if err := s.repo.RemoveUserFromClub(ctx, userId, ClubId); err != nil {
+func (s *service) RemoveUserFromClub(ctx context.Context, userId uint, clubId uint) error {
+	if err := s.repo.RemoveUserFromClub(ctx, userId, clubId); err != nil {
 		return errors.Wrap(err, "failed to remove user from Club")
 	}
 
@@ -105,9 +106,17 @@ func (s *service) UpdateClub(ctx context.Context, id uint, name string) error {
 	return nil
 }
 
-func (s *service) UpdateUserRole(ctx context.Context, userId uint, ClubId uint, role Role) error {
-	if err := s.repo.UpdateUserRole(ctx, userId, ClubId, role); err != nil {
+func (s *service) UpdateUserRole(ctx context.Context, userId uint, clubId uint, role Role) error {
+	if err := s.repo.UpdateUserRole(ctx, userId, clubId, role); err != nil {
 		return errors.Wrap(err, "failed to update user role")
+	}
+
+	return nil
+}
+
+func (s *service) InviteToClub(ctx context.Context, userIds []uint, clubId uint) error {
+	if err := s.repo.InviteToClub(ctx, userIds, clubId); err != nil {
+		return errors.Wrap(err, "failed to invite users to club")
 	}
 
 	return nil

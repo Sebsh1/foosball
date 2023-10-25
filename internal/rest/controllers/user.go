@@ -23,7 +23,7 @@ func (h *Handlers) DeleteUser(c handlers.AuthenticatedContext) error {
 func (h *Handlers) RemoveUserFromClub(c handlers.AuthenticatedContext) error {
 	type request struct {
 		UserId uint `param:"userId" validate:"required,gt=0"`
-		ClubId uint `param:"ClubId" validate:"required,gt=0"`
+		ClubId uint `param:"clubId" validate:"required,gt=0"`
 	}
 
 	ctx := c.Request().Context()
@@ -63,23 +63,24 @@ func (h *Handlers) AddVirtualUserToClub(c handlers.AuthenticatedContext) error {
 }
 
 func (h *Handlers) RespondToInvite(c handlers.AuthenticatedContext) error {
-	type request struct {
-		InviteId uint `param:"inviteId" validate:"required,gt=0"`
-		Accept   bool `json:"accept" validate:"required"`
-	}
+	/*
+		type request struct {
+			InviteId uint `param:"inviteId" validate:"required,gt=0"`
+			Accept   bool `json:"accept" validate:"required"`
+		}
 
-	ctx := c.Request().Context()
+		ctx := c.Request().Context()
 
-	req, err := helpers.Bind[request](c)
-	if err != nil {
-		return echo.ErrBadRequest
-	}
+		req, err := helpers.Bind[request](c)
+		if err != nil {
+			return echo.ErrBadRequest
+		}
 
-	if err := h.clubService.RespondToInvite(ctx, req.InviteId, req.Accept); err != nil {
-		h.logger.Error("failed to respond to invite",
-			"error", err)
-		return echo.ErrInternalServerError
-	}
-
+		if err := h.clubService.RespondToInvite(ctx, req.InviteId, req.Accept); err != nil {
+			h.logger.Error("failed to respond to invite",
+				"error", err)
+			return echo.ErrInternalServerError
+		}
+	*/
 	return c.NoContent(http.StatusOK)
 }
