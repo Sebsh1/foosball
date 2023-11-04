@@ -14,7 +14,8 @@ func (h *Handlers) Login(c echo.Context) error {
 	}
 
 	type loginResponse struct {
-		JWT string `json:"jwt"`
+		AccessToken  string `json:"accessToken"`
+		RefreshToken string `json:"refreshToken"`
 	}
 
 	ctx := c.Request().Context()
@@ -24,7 +25,7 @@ func (h *Handlers) Login(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	correct, token, err := h.authService.Login(ctx, req.Email, req.Password)
+	correct, accessToken, refreshToken, err := h.authService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		h.logger.Error("failed to login",
 			"error", err)
@@ -36,8 +37,42 @@ func (h *Handlers) Login(c echo.Context) error {
 	}
 
 	resp := loginResponse{
-		JWT: token,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (h *Handlers) Refresh(c echo.Context) error {
+	type refreshRequest struct {
+		RefreshToken string `json:"refreshToken" validate:"required"`
+	}
+
+	type refreshResponse struct {
+		AccessToken  string `json:"accessToken"`
+		RefreshToken string `json:"refreshToken"`
+	}
+
+	ctx := c.Request().Context()
+
+	req, err := helpers.Bind[refreshRequest](c)
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	accessToken, refreshToken, err := h.authService.RefreshTokenPair(ctx, req.RefreshToken)
+	if err != nil {
+		h.logger.Error("failed to generate refreshed token pair",
+			"error", err)
+		return echo.ErrInternalServerError
+	}
+
+	resp := refreshResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
 	return c.JSON(http.StatusOK, resp)
 }
 

@@ -10,7 +10,7 @@ import (
 type AuthenticatedContext struct {
 	echo.Context
 	Log    *zap.SugaredLogger
-	Claims authentication.Claims
+	Claims authentication.AccessClaims
 	JWT    string
 }
 
@@ -19,7 +19,7 @@ type AuthenticatedHandlerFunc func(ctx AuthenticatedContext) error
 func AuthenticatedHandlerFactory(logger *zap.SugaredLogger) func(handler AuthenticatedHandlerFunc) func(ctx echo.Context) error {
 	return func(handler AuthenticatedHandlerFunc) func(ctx echo.Context) error {
 		return func(ctx echo.Context) error {
-			claims, ok := ctx.Get("jwt_claims").(*authentication.Claims)
+			claims, ok := ctx.Get("jwt_claims").(*authentication.AccessClaims)
 			if !ok {
 				logger.Debug("missing jwt_claims")
 

@@ -16,8 +16,9 @@ type Config struct {
 }
 
 type Service interface {
-	Login(ctx context.Context, email, password string) (valid bool, token string, err error)
-	VerifyJWT(ctx context.Context, token string) (valid bool, claims *Claims, err error)
+	Login(ctx context.Context, email, password string) (valid bool, accessToken, refreshToken string, err error)
+	VerifyAccessToken(ctx context.Context, token string) (valid bool, claims *AccessClaims, err error)
+	RefreshTokenPair(ctx context.Context, refreshToken string) (accessToken, newRefreshToken string, err error)
 	Signup(ctx context.Context, email, username, password string) (success bool, err error)
 }
 
@@ -33,26 +34,26 @@ func NewService(secret string, userService user.Service) Service {
 	}
 }
 
-func (s *ServiceImpl) Login(ctx context.Context, email string, password string) (bool, string, error) {
+func (s *ServiceImpl) Login(ctx context.Context, email string, password string) (bool, string, string, error) {
 	exists, user, err := s.userService.GetUserByEmail(ctx, email)
 	if err != nil {
-		return false, "", errors.Wrap(err, "failed to get user by email")
+		return false, "", "", errors.Wrap(err, "failed to get user by email")
 	}
 
 	if !exists {
-		return false, "", nil
+		return false, "", "", nil
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Hash), []byte(password)); err != nil {
-		return false, "", nil
+		return false, "", "", nil
 	}
 
-	token, err := s.generateJWT(user.Name, user.Id)
+	accessToken, refreshToken, err := s.generateTokenPair(user.Name, user.Id)
 	if err != nil {
-		return false, "", errors.Wrap(err, "failed to generate jwt")
+		return false, "", "", errors.Wrap(err, "failed to generate jwt")
 	}
 
-	return true, token, nil
+	return true, accessToken, refreshToken, nil
 }
 
 func (s *ServiceImpl) Signup(ctx context.Context, email string, username string, password string) (bool, error) {
@@ -77,8 +78,8 @@ func (s *ServiceImpl) Signup(ctx context.Context, email string, username string,
 	return true, nil
 }
 
-func (s *ServiceImpl) VerifyJWT(ctx context.Context, token string) (bool, *Claims, error) {
-	parsedToken, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+func (s *ServiceImpl) VerifyAccessToken(ctx context.Context, token string) (bool, *AccessClaims, error) {
+	parsedToken, err := jwt.ParseWithClaims(token, &AccessClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(s.secret), nil
 	})
 	if err != nil {
@@ -93,7 +94,7 @@ func (s *ServiceImpl) VerifyJWT(ctx context.Context, token string) (bool, *Claim
 		return false, nil, errors.New("jwt is invalid")
 	}
 
-	claims, ok := parsedToken.Claims.(*Claims)
+	claims, ok := parsedToken.Claims.(*AccessClaims)
 	if !ok {
 		return false, nil, errors.New("failed to parse claims")
 	}
@@ -101,27 +102,87 @@ func (s *ServiceImpl) VerifyJWT(ctx context.Context, token string) (bool, *Claim
 	return true, claims, nil
 }
 
-func (s *ServiceImpl) generateJWT(name string, userId uint) (string, error) {
-	now := time.Now()
-
-	standardClaims := jwt.StandardClaims{
-		IssuedAt:  now.Unix(),
-		NotBefore: now.Unix(),
-		ExpiresAt: now.Add(6 * time.Hour).Unix(),
-		Issuer:    "matchlogger",
+func (s *ServiceImpl) verifyRefreshToken(ctx context.Context, token string) (bool, *RefreshClaims, error) {
+	parsedToken, err := jwt.ParseWithClaims(token, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.secret), nil
+	})
+	if err != nil {
+		return false, nil, err
 	}
 
-	claims := Claims{
-		StandardClaims: standardClaims,
+	if _, ok := parsedToken.Method.(*jwt.SigningMethodHMAC); !ok {
+		return false, nil, errors.New("unexpected signing method")
+	}
+
+	if !parsedToken.Valid {
+		return false, nil, errors.New("jwt is invalid")
+	}
+
+	claims, ok := parsedToken.Claims.(*RefreshClaims)
+	if !ok {
+		return false, nil, errors.New("failed to parse claims")
+	}
+
+	return true, claims, nil
+}
+
+func (s *ServiceImpl) RefreshTokenPair(ctx context.Context, refreshToken string) (string, string, error) {
+	valid, claims, err := s.verifyRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return "", "", errors.Wrap(err, "failed to verify refresh token")
+	}
+
+	if !valid {
+		return "", "", errors.New("refresh token is invalid")
+	}
+
+	u, err := s.userService.GetUser(ctx, claims.UserId)
+	if err != nil {
+		return "", "", errors.Wrap(err, "failed to get user by id")
+	}
+
+	accessToken, newRefreshToken, err := s.generateTokenPair(u.Name, claims.UserId)
+	if err != nil {
+		return "", "", errors.Wrap(err, "failed to generate jwts")
+	}
+
+	return accessToken, newRefreshToken, nil
+}
+
+func (s *ServiceImpl) generateTokenPair(name string, userId uint) (string, string, error) {
+	now := time.Now()
+
+	accessStandardClaims := jwt.StandardClaims{
+		IssuedAt:  now.Unix(),
+		NotBefore: now.Unix(),
+		ExpiresAt: now.Add(15 * time.Minute).Unix(),
+		Issuer:    "matchlog",
+	}
+
+	accessclaims := AccessClaims{
+		StandardClaims: accessStandardClaims,
 		Name:           name,
 		UserId:         userId,
 	}
 
-	tokenUnsigned := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenSigned, err := tokenUnsigned.SignedString([]byte(s.secret))
+	accessTokenUnsigned := jwt.NewWithClaims(jwt.SigningMethodHS256, accessclaims)
+	accessTokenSigned, err := accessTokenUnsigned.SignedString([]byte(s.secret))
 	if err != nil {
-		return "", errors.Wrap(err, "failed to sign access token")
+		return "", "", errors.Wrap(err, "failed to sign access token")
 	}
 
-	return tokenSigned, nil
+	refreshStandardClaims := jwt.StandardClaims{
+		IssuedAt:  now.Unix(),
+		NotBefore: now.Unix(),
+		ExpiresAt: now.Add(15 * time.Minute).Unix(),
+		Issuer:    "matchlog",
+	}
+
+	refreshTokenUnsigned := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshStandardClaims)
+	refreshTokenSigned, err := refreshTokenUnsigned.SignedString([]byte(s.secret))
+	if err != nil {
+		return "", "", errors.Wrap(err, "failed to sign refresh token")
+	}
+
+	return accessTokenSigned, refreshTokenSigned, nil
 }

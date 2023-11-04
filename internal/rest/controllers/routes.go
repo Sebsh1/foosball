@@ -53,8 +53,10 @@ func Register(
 	authGuard := middleware.AuthGuard(authService)
 
 	// Authentication
-	e.POST("/login", h.Login)
-	e.POST("/signup", h.Signup)
+	authGroup := e.Group("/auth")
+	authGroup.POST("/login", h.Login)
+	authGroup.POST("/refresh", h.Refresh)
+	authGroup.POST("/signup", h.Signup)
 
 	// Users
 	userGroup := e.Group("/user", authGuard)

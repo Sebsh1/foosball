@@ -23,14 +23,11 @@ func init() { //nolint:gochecknoinits
 func migrate(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 
-	config, err := loadConfig()
-	if err != nil {
-		zap.L().Fatal("failed to load config", zap.Error(err))
-	}
+	config := loadConfig()
 
-	l := GetLogger(config.Log)
+	l := GetLogger(config.LogEnv)
 
-	db, err := database.NewClient(ctx, config.DB.DSN)
+	db, err := database.NewClient(ctx, config.DBDSN)
 	if err != nil {
 		l.Fatal("failed to connect to database",
 			"error", err)

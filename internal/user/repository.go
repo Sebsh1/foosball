@@ -22,7 +22,7 @@ type Repository interface {
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUsersByEmails(ctx context.Context, emails []string) ([]*User, error)
 	CreateUser(ctx context.Context, user *User) error
-	DeleteUserById(ctx context.Context, id uint) error
+	DeleteUser(ctx context.Context, id uint) error
 	UpdateUser(ctx context.Context, user *User) error
 }
 
@@ -115,7 +115,7 @@ func (r *RepositoryImpl) GetUsersByEmails(ctx context.Context, emails []string) 
 	return users, nil
 }
 
-func (r *RepositoryImpl) DeleteUserById(ctx context.Context, id uint) error {
+func (r *RepositoryImpl) DeleteUser(ctx context.Context, id uint) error {
 	result := r.db.WithContext(ctx).
 		Where("id = ?", id).
 		Delete(&User{})

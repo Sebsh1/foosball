@@ -1,21 +1,15 @@
 version: '3.8'
 
 services:
-  postgres:
-        image: postgres:15.4
-        restart: always
-        environment:
-          - POSTGRES_USER=matchlog
-          - POSTGRES_PASSWORD=supersecret
-          - POSTGRES_DB=matchlog
-        logging:
-          options:
-            max-size: 10m
-            max-file: "3"
-        ports:
-          - '5432:5432'
-        volumes: 
-          - db:/var/lib/postgresql/data
+  database:
+    image: mysql:8.0.23
+    environment:
+      MYSQL_DATABASE: 'matchlog'
+      MYSQL_USER: 'matchlog'
+      MYSQL_PASSWORD: 'secret'
+      MYSQL_RANDOM_ROOT_PASSWORD: 'true'
+    ports:
+      - 3307:3306
 
 volumes:
   db:

@@ -4,17 +4,13 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-type Config struct {
-	DSN string `mapstructure:"dsn" validate:"required"`
-}
-
 func NewClient(ctx context.Context, dsn string) (*gorm.DB, error) {
-	dialect := postgres.Open(dsn)
+	dialect := mysql.Open(dsn)
 
 	gormConfig := &gorm.Config{}
 	gormConfig.Logger = logger.Default.LogMode(logger.Silent)

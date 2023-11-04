@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"matchlog/internal/authentication"
 	"matchlog/internal/club"
 	"matchlog/internal/leaderboard"
@@ -16,7 +17,6 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 )
 
 // serveCmd represents the serve command.
@@ -33,15 +33,12 @@ func init() { //nolint:gochecknoinits
 func serve(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 
-	config, err := loadConfig()
-	if err != nil {
-		zap.L().Fatal("Failed to load config", zap.Error(err))
-	}
+	config := loadConfig()
 
-	l := GetLogger(config.Log)
+	l := GetLogger(config.LogEnv)
 
 	// Initialize database connection
-	db, err := database.NewClient(ctx, config.DB.DSN)
+	db, err := database.NewClient(ctx, config.DBDSN)
 	if err != nil {
 		l.Fatal("Failed to connect to database",
 			"error", err)
@@ -56,7 +53,7 @@ func serve(cmd *cobra.Command, args []string) {
 	clubService := club.NewService(clubRepository)
 
 	// Initialize Authentication service
-	authenticationService := authentication.NewService(config.Authentication.Secret, userService)
+	authenticationService := authentication.NewService(config.JWTSecret, userService)
 
 	// Initialize Match service
 	matchRepository := match.NewRepository(db)
@@ -75,7 +72,7 @@ func serve(cmd *cobra.Command, args []string) {
 
 	// Initialize REST server
 	restServer, err := rest.NewServer(
-		config.Rest.Port,
+		config.Port,
 		l,
 		authenticationService,
 		userService,
@@ -94,7 +91,9 @@ func serve(cmd *cobra.Command, args []string) {
 	defer cancel()
 
 	// Start the REST server
-	l.Info("REST server starting", zap.Int("port", config.Rest.Port))
+	fmt.Println("starting server...")
+	l.Infow("REST server starting",
+		"port", config.Port)
 	go func() {
 		if err := restServer.Start(); err != nil {
 			l.Fatal("Failed to start rest server",
@@ -104,6 +103,8 @@ func serve(cmd *cobra.Command, args []string) {
 	}()
 
 	l.Info("Ready")
+
+	fmt.Println("ready")
 	// Wait for shutdown signal
 	<-ctx.Done()
 

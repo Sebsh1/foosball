@@ -20,7 +20,7 @@ func AuthGuard(authenticationService authentication.Service) func(next echo.Hand
 				return echo.ErrUnauthorized
 			}
 
-			valid, claims, err := authenticationService.VerifyJWT(c.Request().Context(), token)
+			valid, claims, err := authenticationService.VerifyAccessToken(c.Request().Context(), token)
 			if !valid || err != nil {
 				return echo.ErrUnauthorized
 			}
